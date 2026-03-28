@@ -3,229 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FaceID - Unified System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;400;600&display=swap" rel="stylesheet">
+    <title>FaceID Integrated System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #050a18;
-            --accent: #00f2fe;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border-glass: rgba(255, 255, 255, 0.15);
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            margin: 0;
-            padding: 40px 20px;
             font-family: 'Kanit', sans-serif;
-            background: radial-gradient(circle at top right, #1e293b, #050a18);
-            color: white;
+            background: radial-gradient(circle at center, #1e293b 0%, #050a18 100%);
+            color: #fff;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            justify-content: center;
+            padding: 20px;
         }
 
         h1 {
             font-weight: 200;
-            letter-spacing: 3px;
-            margin-bottom: 40px;
-            text-transform: uppercase;
-            color: var(--accent);
+            letter-spacing: 5px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px var(--primary);
+            text-align: center;
         }
 
-        /* Container หลักที่รวมทั้ง 3 ส่วน */
-        .main-wrapper {
-            display: flex;
-            flex-direction: row;
+        /* Container หลักที่รวม 3 ส่วน */
+        .app-container {
+            display: grid;
+            grid-template-columns: repeat(3, 320px);
             gap: 30px;
-            justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap; /* รองรับมือถือ จะตกลงมาเรียงแนวตั้งอัตโนมัติ */
-            max-width: 1200px;
+            max-width: 1100px;
+            width: 100%;
         }
 
-        /* การ์ดแต่ละใบ */
-        .glass-panel {
-            width: 320px;
-            min-height: 550px;
+        /* สไตล์การ์ด Glassmorphism */
+        .card {
             background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glass);
-            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 40px;
             padding: 40px 30px;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            height: 600px;
         }
 
-        .glass-panel:hover {
-            transform: translateY(-10px);
-            border-color: var(--accent);
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
         }
 
-        /* เลข Step */
-        .step-tag {
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            background: var(--accent);
-            color: #000;
-            padding: 5px 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        /* ส่วนหน้าจอ 1: หน้าหลัก */
-        .face-mesh-icon {
+        /* 1. ส่วนหน้าแรก (FaceID Intro) */
+        .face-outline {
             width: 100px;
-            height: 120px;
-            border: 1px solid var(--accent);
+            height: 130px;
+            border: 1px dashed var(--primary);
             border-radius: 50% 50% 45% 45%;
             margin: 40px 0;
             position: relative;
-            overflow: hidden;
         }
-        .face-mesh-icon::after {
-            content: '';
+        .face-outline::before {
+            content: "";
             position: absolute;
-            width: 100%;
-            height: 1px;
-            background: var(--accent);
-            top: 50%;
-            left: 0;
+            top: 50%; width: 100%; height: 1px;
+            background: rgba(0, 242, 254, 0.5);
         }
 
-        /* ส่วนหน้าจอ 2: สแกน */
-        .scanner-box {
+        .btn-action {
+            margin-top: auto;
             width: 100%;
-            height: 220px;
-            border-radius: 20px;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        /* 2. ส่วนหน้าสแกน (Scanning Animation) */
+        .scanner-view {
+            width: 100%;
+            height: 250px;
             background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400') center/cover;
+            border-radius: 25px;
             position: relative;
             overflow: hidden;
-            margin-bottom: 30px;
-            border: 2px solid rgba(0, 242, 254, 0.2);
+            border: 2px solid rgba(0, 242, 254, 0.3);
         }
-        .scan-laser {
-            width: 100%;
-            height: 3px;
-            background: var(--accent);
+        .scan-bar {
             position: absolute;
-            box-shadow: 0 0 20px var(--accent);
-            animation: moveLaser 2.5s infinite ease-in-out;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+            animation: move-bar 3s infinite ease-in-out;
         }
-        @keyframes moveLaser {
-            0%, 100% { top: 0%; }
+        @keyframes move-bar {
+            0%, 100% { top: 0; }
             50% { top: 100%; }
         }
 
-        /* ส่วนหน้าจอ 3: ผลลัพธ์ */
-        .profile-img {
-            width: 90px;
-            height: 90px;
+        .progress-box { width: 100%; margin-top: 40px; }
+        .progress-track {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 10px; margin-top: 10px; overflow: hidden;
+        }
+        .progress-fill {
+            width: 60%; height: 100%; background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* 3. ส่วนหน้าผลลัพธ์ (Success/Info) */
+        .badge {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+        .profile-pic {
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            border: 2px solid var(--accent);
+            border: 2px solid var(--primary);
             padding: 5px;
             margin-bottom: 15px;
         }
 
-        .data-grid {
-            width: 100%;
-            margin-top: 20px;
-        }
-        .data-item {
+        .info-list { width: 100%; margin-top: 20px; }
+        .info-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.85rem;
         }
-        .label { opacity: 0.5; font-weight: 200; }
-        .value { color: var(--accent); }
+        .info-item span:first-child { opacity: 0.5; }
+        .info-item span:last-child { color: var(--primary); }
 
-        /* ปุ่มและสถานะ */
-        .status-ok {
-            color: #00ff88;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-        
-        .footer-text {
-            margin-top: auto;
-            font-size: 0.6rem;
-            opacity: 0.3;
-            text-align: center;
-        }
-
-        /* Responsive สำหรับมือถือ */
-        @media (max-width: 768px) {
-            .main-wrapper { flex-direction: column; align-items: center; }
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                justify-items: center;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>Biometric Authentication</h1>
+    <h1>FACIAL RECOGNITION SYSTEM</h1>
 
-    <div class="main-wrapper">
+    <div class="app-container">
         
-        <div class="glass-panel">
-            <div class="step-tag">ขั้นตอนที่ 1</div>
-            <div class="face-mesh-icon"></div>
-            <h2 style="font-weight: 400;">FaceID</h2>
-            <p style="text-align: center; opacity: 0.7; font-size: 0.9rem;">
-                ระบบสแกนใบหน้าอัจฉริยะ ตรวจจับและระบุตัวตนบุคคลจากฐานข้อมูลกลาง
+        <div class="card">
+            <div class="face-outline"></div>
+            <h2 style="font-weight: 400; margin-bottom: 15px;">FaceID</h2>
+            <p style="text-align: center; font-size: 0.9rem; opacity: 0.7;">
+                ระบบสแกนใบหน้าอัตโนมัติ เพื่อยืนยันตัวตนบุคคลผ่านระบบฐานข้อมูล Cloud
             </p>
-            <div style="margin-top: auto; width: 100%;">
-                <div style="padding: 15px; border: 1px solid var(--accent); border-radius: 10px; text-align: center; color: var(--accent); cursor: pointer;">
-                    เตรียมความพร้อม
-                </div>
-            </div>
+            <button class="btn-action">ลงทะเบียนใบหน้า</button>
         </div>
 
-        <div class="glass-panel">
-            <div class="step-tag">ขั้นตอนที่ 2</div>
-            <div class="scanner-box">
-                <div class="scan-laser"></div>
+        <div class="card">
+            <div class="scanner-view">
+                <div class="scan-bar"></div>
             </div>
-            <p style="margin-bottom: 10px;">กำลังวิเคราะห์โครงสร้างใบหน้า...</p>
-            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;">
-                <div style="width: 75%; height: 100%; background: var(--accent); box-shadow: 0 0 10px var(--accent);"></div>
+            <div class="progress-box">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                    <span>Scanning Process</span>
+                    <span style="color: var(--primary);">60%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill"></div>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 10px; font-size: 0.8rem;">
-                <span>Scanning..</span>
-                <span style="color: var(--accent);">75%</span>
-            </div>
-            <p class="footer-text">กรุณามองกล้องและไม่สวมหน้ากากอนามัย</p>
+            <p style="margin-top: 25px; font-size: 0.8rem; opacity: 0.6;">กรุณามองตรงไปที่กล้อง...</p>
         </div>
 
-        <div class="glass-panel">
-            <div class="step-tag">ขั้นตอนที่ 3</div>
-            <div class="status-ok">✔ ตรวจสอบสำเร็จ</div>
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" class="profile-img" alt="User">
-            <h3 style="margin: 0; font-weight: 400;">คุณสมชาย ใจดี</h3>
-            <span style="font-size: 0.8rem; color: var(--accent);">Manager</span>
+        <div class="card">
+            <div class="badge">● ID CONFIRMED</div>
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" alt="John Smith" class="profile-pic">
+            <h3 style="font-weight: 400;">นายสมชาย ใจดี</h3>
+            <p style="font-size: 0.8rem; color: var(--primary); margin-top: 5px;">ตำแหน่ง: ผู้จัดการ</p>
 
-            <div class="data-grid">
-                <div class="data-item">
-                    <span class="label">รหัสพนักงาน</span>
-                    <span class="value">OC-12004</span>
+            <div class="info-list">
+                <div class="info-item">
+                    <span>รหัสพนักงาน</span>
+                    <span>OC-PM-12004</span>
                 </div>
-                <div class="data-item">
-                    <span class="label">เวลาบันทึก</span>
-                    <span class="value">09:54:22</span>
+                <div class="info-item">
+                    <span>เวลาเข้างาน</span>
+                    <span>09:54 AM</span>
                 </div>
-                <div class="data-item">
-                    <span class="label">สถานที่</span>
-                    <span class="value">ประตูหลัก A1</span>
+                <div class="info-item">
+                    <span>สถานะ</span>
+                    <span>ยืนยันตัวตนแล้ว</span>
                 </div>
             </div>
-            <p class="footer-text">© 2026 OneClick IT Consultancy.</p>
+
+            <p style="margin-top: auto; font-size: 0.6rem; opacity: 0.3;">
+                Copyright © 2026 OneClick IT Consultancy.
+            </p>
         </div>
 
     </div>
