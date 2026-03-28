@@ -175,15 +175,29 @@
 
         async function doAction(act) {
             const payload = {
-                action: act, faceDescriptor: currentDesc,
-                firstName: document.getElementById('reg-f').value,
-                lastName: document.getElementById('reg-l').value,
-                position: document.getElementById('reg-p').value
+                action: act,
+                faceDescriptor: currentDesc,
+                firstName: document.getElementById('reg-f').value || "",
+                lastName: document.getElementById('reg-l').value || "",
+                position: document.getElementById('reg-p').value || ""
             };
-            document.getElementById('res-msg').innerText = "กำลังบันทึก...";
+            
+            document.getElementById('res-msg').innerText = "กำลังส่งข้อมูล...";
             setPhase(4);
-            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            document.getElementById('res-msg').innerText = "สำเร็จ!";
+        
+            try {
+                // 🔥 เปลี่ยนจาก 'no-cors' เป็น 'cors' และใช้ฟอร์แมตที่ส่งค่าได้จริง
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                // รอรับข้อความตอบกลับจาก Google Sheets
+                const result = await response.text();
+                document.getElementById('res-msg').innerText = result || "บันทึกเรียบร้อย!";
+            } catch (e) {
+                document.getElementById('res-msg').innerText = "เกิดข้อผิดพลาดในการส่งข้อมูล: " + e;
+            }
         }
 
         function openAdmin() { if (prompt("รหัสผ่าน:") === "1234") { document.getElementById('admin-panel').style.display = 'block'; document.getElementById('app-view').style.display = 'none'; fetchData(); } }
