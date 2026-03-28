@@ -9,8 +9,15 @@
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <style>
-        :root { --primary: #00f2fe; --accent: #4facfe; --glass: rgba(255, 255, 255, 0.05); }
+        :root { 
+            --primary: #00f2fe; 
+            --accent: #4facfe; 
+            --glass: rgba(255, 255, 255, 0.05); 
+            --bg-color: #0f172a;
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Kanit', sans-serif;
             background: radial-gradient(circle, #1e293b, #050a18);
@@ -19,39 +26,71 @@
 
         .unified-block {
             width: 360px; height: 680px; background: var(--glass);
-            backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 40px; padding: 35px; display: flex; flex-direction: column; position: relative;
             box-shadow: 0 40px 100px rgba(0,0,0,0.5); overflow: hidden;
+            transition: all 0.3s ease;
         }
 
+        /* แกนนำหน้า (Active Phase) */
         .phase { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; animation: fadeIn 0.4s; }
         .phase.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Input Styles */
         input {
             width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Kanit';
+            transition: border-color 0.3s;
         }
+        input:focus { border-color: var(--primary); outline: none; }
 
+        /* Button Styles */
         .btn-action {
             width: 100%; padding: 16px; border: none; border-radius: 18px; margin-top: auto;
             background: linear-gradient(90deg, var(--primary), var(--accent));
             color: #000; font-weight: 600; cursor: pointer; font-family: 'Kanit';
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
+            transition: all 0.3s;
         }
+        .btn-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.5); }
+        .btn-action:disabled { background: #555; color: #aaa; cursor: not-allowed; box-shadow: none; }
 
+        /* Scanner Elements */
         .scanner-view {
             width: 100%; height: 280px; border-radius: 25px; overflow: hidden;
             position: relative; background: #000; border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
+        .scanner-view.detected { border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); }
         
         .laser {
             position: absolute; width: 100%; height: 3px; background: var(--primary);
             box-shadow: 0 0 15px var(--primary); animation: scan 2s infinite ease-in-out; z-index: 5;
+            transition: background 0.3s, box-shadow 0.3s;
         }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
+        /* Result Elements */
+        .result-img-container {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 3px solid var(--primary); padding: 5px; margin-bottom: 20px;
+            overflow: hidden; background: rgba(0,0,0,0.3);
+        }
+        #result-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .info-row {
+            display: flex; justify-content: space-between; width: 100%;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+        }
+        .info-row span:first-child { opacity: 0.5; }
+        .info-row span:last-child { color: var(--primary); }
+
+        /* Loading Overlay */
         #loading-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #0f172a; display: flex; flex-direction: column; 
@@ -70,136 +109,255 @@
         </div>
 
         <div class="phase active" id="phase1">
-            <h2 style="font-weight: 400; margin-bottom: 10px; color: var(--primary);">FaceID Register</h2>
+            <h2 style="font-weight: 400; margin-bottom: 10px; color: var(--primary); text-align: center;">ลงทะเบียน FaceID</h2>
             <p style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 30px; text-align: center;">กรอกข้อมูลพนักงานเพื่อเริ่มสแกนหน้า</p>
-            <input type="text" id="fname" placeholder="ชื่อ">
-            <input type="text" id="lname" placeholder="นามสกุล">
+            <input type="text" id="fname" placeholder="ชื่อ (ภาษาไทย)">
+            <input type="text" id="lname" placeholder="นามสกุล (ภาษาไทย)">
             <input type="text" id="pos" placeholder="ตำแหน่ง">
-            <button class="btn-action" onclick="startCameraPhase()">ถัดไป: สแกนใบหน้า</button>
+            <button class="btn-action" id="start-btn" onclick="startCameraPhase()">ถัดไป: สแกนใบหน้า</button>
         </div>
 
         <div class="phase" id="phase2">
-            <div class="scanner-view">
+            <div class="scanner-view" id="scanner-wrapper">
                 <video id="video" autoplay muted playsinline></video>
-                <div class="laser"></div>
+                <div class="laser" id="laser-line"></div>
             </div>
-            <p id="status" style="margin-top: 20px; font-size: 0.8rem; color: var(--primary);">กำลังค้นหาใบหน้า...</p>
-            <button class="btn-action" id="save-btn" onclick="saveData()" disabled>ยืนยันและบันทึกข้อมูล</button>
+            
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 15px; font-size: 0.8rem;">
+                <span id="status">กำลังค้นหาใบหน้า...</span>
+                <span id="percent-text" style="color: var(--primary);">0%</span>
+            </div>
+            
+            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 4px; overflow: hidden;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; box-shadow: 0 0 10px var(--primary);"></div>
+            </div>
+            
+            <button class="btn-action" id="save-btn" onclick="captureAndSave()" disabled>ยืนยันและบันทึกข้อมูล</button>
         </div>
 
         <div class="phase" id="phase3">
             <div style="background: rgba(0,255,136,0.1); color: #00ff88; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 20px;">บันทึกสำเร็จ</div>
+            
+            <div class="result-img-container">
+                <img id="result-img" src="" alt="Profile Image">
+            </div>
+            
             <h3 id="res-name">-</h3>
             <p id="res-pos" style="color: var(--primary); font-size: 0.8rem; margin-top: 5px;">-</p>
+            
             <div style="width: 100%; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center;">
-                <p style="font-size: 0.7rem; opacity: 0.4;">Face Descriptor บันทึกลง Google Sheet แล้ว</p>
+                <p style="font-size: 0.7rem; opacity: 0.4; word-break: break-all;" id="face-id-descriptor">บันทึกลง Google Sheet เรียบร้อย</p>
             </div>
+            
             <button class="btn-action" onclick="location.reload()">ลงทะเบียนคนใหม่</button>
         </div>
     </div>
 
     <script>
         // *** 1. ใส่ Web App URL ของคุณที่นี่ ***
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzDjHo9DUn6D_wUlEvEFmuow8uK4IBy6emC7lFLJg4tcjD-W2WdPCH8t1DX3jOd9gndKg/exec'; 
+        const scriptURL = 'ใส่_WEB_APP_URL_ของคุณที่นี่'; 
         
         const video = document.getElementById('video');
+        const scannerWrapper = document.getElementById('scanner-wrapper');
+        const laserLine = document.getElementById('laser-line');
+        const progressBar = document.getElementById('progress-bar');
+        const percentText = document.getElementById('percent-text');
+        const saveBtn = document.getElementById('save-btn');
+        const status = document.getElementById('status');
         let currentDescriptor = null;
+        let detectionInterval = null;
 
         // ฟังก์ชันโหลด Models จากโฟลเดอร์ใน GitHub ของคุณเอง
         async function loadModels() {
-        const msg = document.getElementById('load-msg');
-        try {
-        // ใช้ URL เต็มของ GitHub Pages ของคุณเพื่อความชัวร์
-        // เปลี่ยน 'sumet67' และ 'face-id-ui' ให้ตรงกับของคุณ
-        const MODEL_URL = 'https://sumet67.github.io/face-id-ui/models';
-        
-        console.log("กำลังโหลดโมเดลจาก:", MODEL_URL);
-
-        // โหลด Detector
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        // โหลด Landmarks
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        // โหลด Recognition (ตัวที่มีปัญหา shard2)
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-
-        document.getElementById('loading-overlay').style.display = 'none';
-        console.log("AI Ready!");
-    } catch (e) {
-        console.error("AI Error:", e);
-        msg.innerHTML = "โครงสร้างโมเดลไม่ถูกต้อง<br><small>ลองล้างแคช Browser (Ctrl+F5)</small>";
-    }
-}
+            const msg = document.getElementById('load-msg');
+            try {
+                // Path ชี้ไปที่โฟลเดอร์ models ใน repo ของคุณอัตโนมัติ
+                const MODEL_URL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '') + '/models';
+                
+                msg.innerText = "กำลังเชื่อมต่อกับ AI...";
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                msg.innerText = "โหลด Detector สำเร็จ...";
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                msg.innerText = "โหลด Landmarks สำเร็จ...";
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                
+                document.getElementById('loading-overlay').style.display = 'none';
+                console.log("AI Ready!");
+            } catch (e) {
+                console.error("AI Error:", e);
+                msg.innerHTML = "โหลด AI ไม่สำเร็จ!<br><small style='color:#ccc'>Path ผิด? Error: " + e.message + "</small>";
+                msg.style.color = "#ff4d4d";
+            }
+        }
         
         loadModels();
 
         async function startCameraPhase() {
-            if(!document.getElementById('fname').value || !document.getElementById('pos').value) return alert("กรุณากรอกข้อมูลให้ครบ");
+            const fname = document.getElementById('fname').value;
+            const pos = document.getElementById('pos').value;
+            if(!fname || !pos) return alert("กรุณากรอกข้อมูลให้ครบ");
             
             document.getElementById('phase1').classList.remove('active');
             document.getElementById('phase2').classList.add('active');
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                // ขออนุญาตใช้กล้อง
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
                 video.srcObject = stream;
             } catch (err) {
                 alert("เข้าถึงกล้องไม่ได้: " + err.message);
+                location.reload();
             }
 
-            video.addEventListener('play', () => {
-                const canvas = faceapi.createCanvasFromMedia(video);
-                document.querySelector('.scanner-view').append(canvas);
-                const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
-                faceapi.matchDimensions(canvas, displaySize);
-
-                const detectionLoop = setInterval(async () => {
-                    if (video.paused || video.ended) return clearInterval(detectionLoop);
-
-                    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                        .withFaceLandmarks()
-                        .withFaceDescriptor();
-                    
-                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    if (detection) {
-                        const resized = faceapi.resizeResults(detection, displaySize);
-                        faceapi.draw.drawFaceLandmarks(canvas, resized);
-                        currentDescriptor = Array.from(detection.descriptor);
-                        document.getElementById('status').innerText = "เจอใบหน้าแล้ว! พร้อมบันทึก";
-                        document.getElementById('status').style.color = "#00ff88";
-                        document.getElementById('save-btn').disabled = false;
-                    } else {
-                        document.getElementById('status').innerText = "กรุณาวางใบหน้าให้ตรงจุด...";
-                        document.getElementById('status').style.color = "var(--primary)";
-                        document.getElementById('save-btn').disabled = true;
-                    }
-                }, 200);
-            });
+            video.addEventListener('play', onVideoPlay);
         }
 
-        async function saveData() {
-            const btn = document.getElementById('save-btn');
-            btn.innerText = "กำลังบันทึก...";
-            btn.disabled = true;
+        // 2. ฟังก์ชันหลัก: ตรวจจับใบหน้าและทำ UI ล้ำๆ
+        function onVideoPlay() {
+            // สร้าง Canvas ซ้อนทับวิดีโอ
+            const canvas = faceapi.createCanvasFromMedia(video);
+            scannerWrapper.append(canvas);
+            const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
+            faceapi.matchDimensions(canvas, displaySize);
 
+            let percent = 0;
+
+            // วนลูปตรวจจับใบหน้าทุกๆ 150ms
+            detectionInterval = setInterval(async () => {
+                if (video.paused || video.ended) return;
+
+                const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+                
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (detection) {
+                    const resized = faceapi.resizeResults(detection, displaySize);
+                    
+                    // --- 2.1 วาด UI Landmarks (เส้นครอบโครงร่าง) เหมือน Reference ---
+                    // faceapi.draw.drawFaceLandmarks(canvas, resized); // วาดเส้นละเอียด
+                    drawFaceOverlay(canvas, resized.landmarks); // วาดวงกลม/วงรีครอบใบหน้า
+
+                    currentDescriptor = Array.from(detection.descriptor);
+                    
+                    // --- 2.2 เปลี่ยนสี UI เป็นสีเขียว ---
+                    scannerWrapper.classList.add('detected');
+                    laserLine.style.background = '#00ff88';
+                    laserLine.style.boxShadow = '0 0 15px #00ff88';
+                    status.innerText = "เจอใบหน้าแล้ว! มองกล้องค้างไว้...";
+                    status.style.color = "#00ff88";
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = "ยืนยันและบันทึก";
+                    
+                    // --- 2.3 อัปเดต % โหลดตามความแม่นยำ ---
+                    if(percent < 90) percent += 10;
+                    if(percent >= 90 && percent < 100) percent += 2;
+                } else {
+                    // --- 2.4 ปิด UI กลับเป็นสีฟ้า ---
+                    scannerWrapper.classList.remove('detected');
+                    laserLine.style.background = 'var(--primary)';
+                    laserLine.style.boxShadow = '0 0 15px var(--primary)';
+                    currentDescriptor = null;
+                    status.innerText = "กำลังค้นหาใบหน้า...";
+                    status.style.color = "var(--primary)";
+                    saveBtn.disabled = true;
+                    saveBtn.innerText = "กรุณามองกล้องตรงๆ";
+                    
+                    // ลด % ลงช้าๆ ถ้าไม่เจอหน้า
+                    if(percent > 0) percent -= 5;
+                }
+
+                // อัปเดต Percent UI
+                progressBar.style.width = percent + '%';
+                percentText.innerText = percent + '%';
+
+            }, 150);
+        }
+
+        // 3. ฟังก์ชันถ่ายรูป, เก็บคืน Face ID และส่งไป Google Sheet
+        async function captureAndSave() {
+            if(!currentDescriptor) return;
+            
+            saveBtn.innerText = "กำลังบันทึกข้อมูล...";
+            saveBtn.disabled = true;
+
+            // 3.1 ถ่ายรูปปัจจุบันจากวิดีโอมาแสดง
+            const captureCanvas = document.createElement('canvas');
+            captureCanvas.width = video.videoWidth;
+            captureCanvas.height = video.videoHeight;
+            // กลับด้านรูปภาพให้เหมือนกระจก
+            captureCanvas.getContext('2d').scale(-1, 1);
+            captureCanvas.getContext('2d').drawImage(video, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
+            document.getElementById('result-img').src = captureCanvas.toDataURL('image/jpeg');
+
+            // เตรียมข้อมูลส่งไป Google Sheet
             const payload = {
                 firstName: document.getElementById('fname').value,
                 lastName: document.getElementById('lname').value,
                 position: document.getElementById('pos').value,
-                faceDescriptor: currentDescriptor
+                faceDescriptor: currentDescriptor // ส่ง Face ID (Descriptor)
             };
 
-            // ส่งข้อมูลไป Google Sheet (mode no-cors)
-            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+            // 3.2 ส่งข้อมูลไป Google Sheet (mode no-cors)
+            fetch(scriptURL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
             .then(() => {
+                // 3.3 เปลี่ยนหน้าจอผลลัพธ์
                 document.getElementById('phase2').classList.remove('active');
                 document.getElementById('phase3').classList.add('active');
                 document.getElementById('res-name').innerText = payload.firstName + " " + payload.lastName;
                 document.getElementById('res-pos').innerText = payload.position;
                 
+                // แสดงสถานะเก็บข้อมูล
+                document.getElementById('face-id-descriptor').innerText = "Face ID: " + currentDescriptor[0].toFixed(4) + "... [128 values recorded]";
+                
                 // ปิดกล้อง
                 video.srcObject.getTracks().forEach(track => track.stop());
+                clearInterval(detectionInterval);
             })
-            .catch(err => alert("บันทึกผิดพลาด: " + err));
+            .catch(err => {
+                alert("บันทึกผิดพลาด: " + err);
+                saveBtn.disabled = false;
+                saveBtn.innerText = "ยืนยันและบันทึกใหม่";
+            });
+        }
+
+        // 4. ฟังก์ชันวาดวงรี/วงกลมครอบใบหน้า (face match mirror)
+        function drawFaceOverlay(canvas, landmarks) {
+            const ctx = canvas.getContext('2d');
+            ctx.beginPath();
+            
+            // หาจุดรอบๆ ใบหน้า (Jawline) เพื่อทำโครง
+            const jawline = landmarks.getJawOutline();
+            ctx.moveTo(jawline[0].x, jawline[0].y);
+            for (let i = 1; i < jawline.length; i++) {
+                ctx.lineTo(jawline[i].x, jawline[i].y);
+            }
+            
+            // ลากเส้น Landmarks ของตาทั้งสองข้างให้ดูสมจริง
+            const leftEye = landmarks.getLeftEye();
+            ctx.moveTo(leftEye[0].x, leftEye[0].y);
+            for (let i = 1; i < leftEye.length; i++) ctx.lineTo(leftEye[i].x, leftEye[i].y);
+            ctx.closePath();
+
+            const rightEye = landmarks.getRightEye();
+            ctx.moveTo(rightEye[0].x, rightEye[0].y);
+            for (let i = 1; i < rightEye.length; i++) ctx.lineTo(rightEye[i].x, rightEye[i].y);
+            ctx.closePath();
+
+            // ลากเส้นของคิ้ว
+            const leftBrow = landmarks.getLeftEyeBrow();
+            ctx.moveTo(leftBrow[0].x, leftBrow[0].y);
+            for (let i = 1; i < leftBrow.length; i++) ctx.lineTo(leftBrow[i].x, leftBrow[i].y);
+            
+            const rightBrow = landmarks.getRightEyeBrow();
+            ctx.moveTo(rightBrow[0].x, rightBrow[0].y);
+            for (let i = 1; i < rightBrow.length; i++) ctx.lineTo(rightBrow[i].x, rightBrow[i].y);
+
+            // วาดเส้นสีเขียวบางๆ
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 1;
+            ctx.stroke();
         }
     </script>
 </body>
