@@ -107,34 +107,28 @@
 
         // ฟังก์ชันโหลด Models จากโฟลเดอร์ใน GitHub ของคุณเอง
         async function loadModels() {
-            const msg = document.getElementById('load-msg');
-            try {
-                // พยายามหา Path พื้นฐานของหน้าเว็บปัจจุบัน
-                const path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-                // ใช้ Path แบบสมบูรณ์เพื่อป้องกัน Error 404
-                const MODEL_URL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '') + '/models';
-                
-                console.log("พยายามโหลด Model จาก:", MODEL_URL);
+        const msg = document.getElementById('load-msg');
+        try {
+        // ใช้ URL เต็มของ GitHub Pages ของคุณเพื่อความชัวร์
+        // เปลี่ยน 'sumet67' และ 'face-id-ui' ให้ตรงกับของคุณ
+        const MODEL_URL = 'https://sumet67.github.io/face-id-ui/models';
+        
+        console.log("กำลังโหลดโมเดลจาก:", MODEL_URL);
 
-                msg.innerText = "กำลังเชื่อมต่อกับ Models...";
-                
-                // โหลดทีละตัวเพื่อเช็คว่าติดที่ตัวไหน
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                msg.innerText = "โหลด Detector สำเร็จ...";
-                
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                msg.innerText = "โหลด Landmarks สำเร็จ...";
-                
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                msg.innerText = "ระบบ AI พร้อมทำงาน";
+        // โหลด Detector
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        // โหลด Landmarks
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        // โหลด Recognition (ตัวที่มีปัญหา shard2)
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
 
-                document.getElementById('loading-overlay').style.display = 'none';
-            } catch (e) {
-                console.error("รายละเอียด Error:", e);
-                msg.innerHTML = "โหลด AI ไม่สำเร็จ!<br><small style='color:#ccc'>Error: " + e.message + "</small><br><button onclick='location.reload()' style='background:none; border:1px solid #fff; color:#fff; padding:5px; margin-top:10px; cursor:pointer;'>ลองใหม่อีกครั้ง</button>";
-                msg.style.color = "#ff4d4d";
-            }
-        }
+        document.getElementById('loading-overlay').style.display = 'none';
+        console.log("AI Ready!");
+    } catch (e) {
+        console.error("AI Error:", e);
+        msg.innerHTML = "โครงสร้างโมเดลไม่ถูกต้อง<br><small>ลองล้างแคช Browser (Ctrl+F5)</small>";
+    }
+}
         
         loadModels();
 
