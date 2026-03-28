@@ -3,172 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID Attendance</title>
+    <title>AI FaceID Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
-        :root { --primary: #00f2fe; --accent: #4facfe; --success: #00ff88; --danger: #ff4d4d; --glass: rgba(255, 255, 255, 0.05); }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Kanit', sans-serif; background: #050a18; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .app-container { width: 360px; height: 680px; background: var(--glass); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 30px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .phase { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; }
+        :root { --primary: #00f2fe; --accent: #4facfe; --bg: #050a18; --card: rgba(255,255,255,0.05); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
+        body { background: var(--bg); color: #fff; overflow-x: hidden; }
+
+        /* Dashboard Layout */
+        #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 240px; background: rgba(0,0,0,0.3); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 20px; }
+        .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 1.2rem; }
+        .menu-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.3s; margin-bottom: 5px; opacity: 0.7; }
+        .menu-item:hover, .menu-item.active { background: var(--card); opacity: 1; color: var(--primary); }
+        
+        /* Main Content */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Tables */
+        .table-container { background: var(--card); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        th { background: rgba(255,255,255,0.02); color: var(--primary); }
+        
+        /* Floating Button */
+        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--primary); color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 500; font-size: 24px; box-shadow: 0 10px 20px rgba(0,242,254,0.3); }
+        
+        /* App Container (Original) */
+        .app-container { width: 360px; height: 680px; background: var(--card); backdrop-filter: blur(20px); border-radius: 40px; padding: 30px; margin: 50px auto; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
+        .phase { display: none; flex-direction: column; align-items: center; }
         .phase.active { display: flex; }
-        .scanner-view { width: 100%; height: 260px; border-radius: 25px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); }
-        .scanner-view.detected { border-color: var(--success); box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); pointer-events: none; }
-        .laser { position: absolute; width: 100%; height: 3px; background: var(--primary); animation: scan 2s infinite ease-in-out; z-index: 5; }
-        @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; font-family: 'Kanit'; }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; margin-top: auto; }
-        .btn-sub { width: 100%; padding: 10px; background: none; color: #ccc; border: none; margin-top: 10px; cursor: pointer; }
-        #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999; padding: 20px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.8rem; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: var(--primary); }
-        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 500; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container" id="app-view">
         <div class="phase active" id="phase1">
-            <h2 style="color:var(--primary); margin-bottom: 20px;">ลงเวลาทำงาน</h2>
-            <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted></video><div class="laser"></div></div>
-            <p id="stat1" style="margin-top:10px; font-size:0.8rem;">กำลังสแกนใบหน้า...</p>
-            <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลา (เข้า/ออก)</button>
-            <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
-        </div>
-
-        <div class="phase" id="phase2">
-            <h2>ข้อมูลพนักงาน</h2>
-            <input type="text" id="reg-f" placeholder="ชื่อจริง">
-            <input type="text" id="reg-l" placeholder="นามสกุล">
-            <input type="text" id="reg-p" placeholder="ตำแหน่ง">
-            <button class="btn-main" onclick="setPhase(3)">ถัดไป: สแกนใบหน้า</button>
-            <button class="btn-sub" onclick="setPhase(1)">ยกเลิก</button>
-        </div>
-
-        <div class="phase" id="phase3">
-            <h2>ยืนยันใบหน้า</h2>
-            <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted></video><div class="laser"></div></div>
-            <p id="stat3" style="margin-top:10px;">กรุณานิ่งสักครู่...</p>
-            <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>บันทึกพนักงาน</button>
-        </div>
-
-        <div class="phase" id="phase4">
-            <h1 style="font-size: 50px;">✅</h1>
-            <p id="res-msg" style="text-align: center; padding: 20px;"></p>
-            <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
+            <h2 style="color:var(--primary)">สแกนเข้างาน</h2>
+            <button class="btn-main" onclick="openAdmin()" style="margin-top: 20px; background: none; color: var(--primary); border: 1px solid; padding: 10px; border-radius: 10px; cursor: pointer;">เปิด Dashboard</button>
         </div>
     </div>
 
-    <div class="admin-float" onclick="openAdmin()">📊</div>
+    <div id="admin-panel" style="display:none;">
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <div class="menu-item active" onclick="switchTab('tab-report')">📋 รายงานลงเวลา</div>
+            <div class="menu-item" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
+            <div class="menu-item" onclick="location.reload()" style="margin-top: auto; color: #ff4d4d;">🚪 ออกจากระบบ</div>
+        </div>
 
-    <div id="admin-panel">
-        <div style="display:flex; justify-content: space-between;">
-            <h3>Admin Dashboard</h3>
-            <button onclick="closeAdmin()" style="color:red; background:none; border:none;">ปิด</button>
+        <div class="main-content">
+            <div id="tab-report" class="tab-content active">
+                <div class="header">
+                    <h3>รายงานการลงเวลา</h3>
+                    <div>
+                        <button onclick="exportExcel('logTable')" style="padding: 8px 15px; background: #00ff88; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Export Excel</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="logTable">
+                        <thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ-นามสกุล</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead>
+                        <tbody id="logBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-emp" class="tab-content">
+                <div class="header">
+                    <h3>รายชื่อพนักงานทั้งหมด</h3>
+                </div>
+                <div class="table-container">
+                    <table id="empTable">
+                        <thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th></tr></thead>
+                        <tbody id="empBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div style="margin: 15px 0;">
-            <button onclick="exportExcel()" style="padding: 5px 15px; background:var(--success); border-radius:5px;">Excel</button>
-            <button onclick="exportPDF()" style="padding: 5px 15px; background:#fff; border-radius:5px; margin-left:5px;">PDF</button>
-        </div>
-        <table>
-            <thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ-นามสกุล</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead>
-            <tbody id="logBody"></tbody>
-        </table>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwNn_wRm4sybbNMp1ABYDUvOU7LJaLTuHxiraLbLgD4Q7b1dTFm7TJ0iQUxO0PDzJhK/exec';
-        let currentDesc = null;
-        let detectInt = null;
-
-        async function init() {
-            const URL = 'https://script.google.com/macros/s/AKfycbwNn_wRm4sybbNMp1ABYDUvOU7LJaLTuHxiraLbLgD4Q7b1dTFm7TJ0iQUxO0PDzJhK/exec';
-            await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
-            startCam(1);
-        }
-
-        async function startCam(p) {
-            const vid = document.getElementById('vid'+p);
-            const wrap = document.getElementById('wrapper'+p);
-            const btn = document.getElementById('btn'+p);
-            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
-            vid.srcObject = stream;
-            vid.onplay = () => {
-                const canvas = faceapi.createCanvasFromMedia(vid);
-                wrap.append(canvas);
-                detectInt = setInterval(async () => {
-                    const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                    if (det) {
-                        currentDesc = Array.from(det.descriptor);
-                        wrap.classList.add('detected');
-                        btn.disabled = false;
-                    } else {
-                        wrap.classList.remove('detected');
-                        btn.disabled = true;
-                    }
-                }, 300);
-            };
-        }
-
-        function setPhase(n) {
-            clearInterval(detectInt);
-            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
-            document.getElementById('phase'+n).classList.add('active');
-            if(n==1 || n==3) startCam(n);
-        }
-
-        async function doAction(act) {
-            const payload = { 
-                action: act, 
-                faceDescriptor: currentDesc,
-                firstName: document.getElementById('reg-f').value,
-                lastName: document.getElementById('reg-l').value,
-                position: document.getElementById('reg-p').value
-            };
-            document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-            setPhase(4);
-            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            document.getElementById('res-msg').innerText = "บันทึกข้อมูลเรียบร้อยแล้ว";
-        }
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyAsGoU9_k02MBIPjXZxYAFz9nNJgt3NRQPGRf5orn6xGnLBKwTJ96GtEx9Hx1RIiGS7g/exec';
 
         function openAdmin() {
-            if (prompt("Pass:") === "1234") {
-                document.getElementById('admin-panel').style.display = 'block';
-                fetchLogs();
+            if (prompt("รหัสผ่าน Admin:") === "1234") {
+                document.getElementById('admin-panel').style.display = 'flex';
+                document.getElementById('app-view').style.display = 'none';
+                fetchData();
             }
         }
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
 
-        async function fetchLogs() {
-            const res = await fetch(scriptURL + "?action=getLogs");
-            const data = await res.json();
-            const body = document.getElementById('logBody');
-            body.innerHTML = "";
-            data.reverse().forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]} ${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td>`;
-                body.appendChild(tr);
-            });
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
-        function exportExcel() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('logTable')), "Report.xlsx"); }
-        function exportPDF() { 
-            const doc = new jspdf.jsPDF(); 
-            doc.autoTable({ html: '#logTable' }); 
-            doc.save("Report.pdf"); 
+        async function fetchData() {
+            // ดึงรายงานลงเวลา
+            const logRes = await fetch(scriptURL + "?action=getLogs");
+            const logData = await logRes.json();
+            const logBody = document.getElementById('logBody');
+            logBody.innerHTML = logData.reverse().map(row => `
+                <tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]} ${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td></tr>
+            `).join('');
+
+            // ดึงรายชื่อพนักงาน
+            const empRes = await fetch(scriptURL + "?action=getEmployees");
+            const empData = await empRes.json();
+            const empBody = document.getElementById('empBody');
+            empBody.innerHTML = empData.map(row => `
+                <tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>
+            `).join('');
         }
 
-        init();
+        function exportExcel(tableId) {
+            XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById(tableId)), "Report.xlsx");
+        }
     </script>
 </body>
 </html>
