@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaceID - ระบบสแกนใบหน้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --accent-color: #00f2fe;
+            --text-color: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Kanit', sans-serif;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* สไตล์มือถือ/การ์ด */
+        .phone-card {
+            width: 300px;
+            height: 600px;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* หน้าที่ 1: หน้าแรก */
+        .icon-mesh {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed var(--accent-color);
+            border-radius: 50% 50% 40% 40%;
+            margin-top: 50px;
+            position: relative;
+        }
+
+        h2 { margin-top: 40px; font-weight: 600; letter-spacing: 1px; }
+        p { text-align: center; font-size: 0.9rem; opacity: 0.8; line-height: 1.5; }
+
+        .btn-start {
+            margin-top: auto;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* หน้าที่ 2: กำลังสแกน */
+        .scan-area {
+            width: 200px;
+            height: 250px;
+            background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400') center/cover;
+            border-radius: 100px;
+            margin-top: 40px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(0, 242, 254, 0.3);
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-color);
+            top: 0;
+            animation: scan 2s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+
+        .progress-container { width: 100%; margin-top: 40px; }
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 60%;
+            height: 100%;
+            background: var(--accent-color);
+        }
+
+        /* หน้าที่ 3: สำเร็จ */
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--accent-color);
+            margin-top: 20px;
+        }
+
+        .info-table {
+            width: 100%;
+            margin-top: 30px;
+            font-size: 0.85rem;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 5px;
+        }
+        .label { opacity: 0.6; }
+        .val { color: var(--accent-color); font-weight: 400; }
+
+        .success-badge {
+            background: rgba(0, 255, 127, 0.2);
+            color: #00ff7f;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="phone-card">
+        <div class="icon-mesh"></div>
+        <h2>สแกนใบหน้า</h2>
+        <p>ระบบตรวจจับใบหน้าอัตโนมัติ เพื่อยืนยันตัวตนและบันทึกเวลาเข้างานอย่างปลอดภัย</p>
+        <button class="btn-start">เริ่มใช้งาน</button>
+    </div>
+
+    <div class="phone-card">
+        <div class="scan-area">
+            <div class="scan-line"></div>
+        </div>
+        <div class="progress-container">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="font-size: 0.8rem;">กำลังสแกน...</span>
+                <span style="font-size: 0.8rem; color: var(--accent-color);">60%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+        <p style="margin-top: 20px; font-size: 0.8rem;">กรุณาวางใบหน้าให้ตรงจุด</p>
+    </div>
+
+    <div class="phone-card">
+        <div class="success-badge">👍 ยืนยันสำเร็จ!</div>
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" alt="User" class="avatar">
+        <h3 style="margin-top: 15px; margin-bottom: 5px;">สมชาย ใจดี</h3>
+        <p style="font-size: 0.75rem; color: var(--accent-color);">ID: OC-PM-12004</p>
+
+        <div class="info-table">
+            <div class="info-row">
+                <span class="label">ตำแหน่ง:</span>
+                <span class="val">ผู้จัดการ</span>
+            </div>
+            <div class="info-row">
+                <span class="label">เวลาเข้า:</span>
+                <span class="val">09:54 น.</span>
+            </div>
+            <div class="info-row">
+                <span class="label">สถานะ:</span>
+                <span class="val">ปกติ</span>
+            </div>
+        </div>
+        
+        <p style="font-size: 0.6rem; margin-top: auto; opacity: 0.4;">© 2026 OneClick IT Consultancy.</p>
+    </div>
+
+</div>
+
+</body>
+</html>
