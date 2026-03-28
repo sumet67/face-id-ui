@@ -9,14 +9,19 @@
     <style>
         :root { --primary: #00f2fe; --accent: #4facfe; --bg: #050a18; --card: rgba(255, 255, 255, 0.05); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
-        body { background: var(--bg); color: #fff; min-height: 100vh; }
+        body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; }
 
         /* Scanner View */
-        .app-view { display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
-        .app-container { width: 350px; background: var(--card); backdrop-filter: blur(20px); border-radius: 35px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-        .phase { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        
+        /* 🔥 ปรับปรุง Container ให้จัดทุกอย่างอยู่กลาง Card 🔥 */
+        .app-container { width: 350px; height: 600px; background: var(--card); backdrop-filter: blur(20px); border-radius: 35px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        .phase { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
         .phase.active { display: flex; }
-        .scanner-view { width: 100%; height: 260px; border-radius: 20px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); }
+        
+        /* 🔥 ปรับปรุงตัวสแกนให้อยู่กลางเฟส 🔥 */
+        .scanner-view { width: 100%; height: 260px; border-radius: 20px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); margin: 20px 0; }
         .scanner-view.detected { border-color: #00ff88; box-shadow: 0 0 15px rgba(0,255,136,0.3); }
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); pointer-events: none; }
@@ -25,7 +30,7 @@
         
         /* Form & Buttons */
         input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 20px; }
         .btn-main:disabled { background: #444; color: #888; cursor: not-allowed; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 10px; cursor: pointer; }
 
@@ -33,7 +38,7 @@
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 240px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 25px; }
         .sidebar h2 { color: var(--primary); margin-bottom: 30px; }
-        .menu-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; transition: 0.2s; color: #ccc; }
+        .menu-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; color: #ccc; }
         .menu-item:hover, .menu-item.active { background: var(--card); color: var(--primary); }
         .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; }
         .table-container { background: var(--card); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; margin-top: 20px; }
@@ -50,9 +55,9 @@
     <div class="app-view" id="app-view">
         <div class="app-container">
             <div class="phase active" id="phase1">
-                <h2 style="color:var(--primary); margin-bottom:20px;">สแกนใบหน้า</h2>
+                <h2 style="color:var(--primary); text-align: center;">สแกนใบหน้า</h2>
                 <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted playsinline></video><div class="laser"></div></div>
-                <p id="stat1" style="margin-top:15px; font-size:0.85rem;">กำลังค้นหาใบหน้า...</p>
+                <p id="stat1" style="font-size:0.85rem; text-align:center;">กำลังค้นหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
                 <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
             </div>
@@ -67,9 +72,9 @@
             </div>
 
             <div class="phase" id="phase3">
-                <h2 style="color:var(--primary); margin-bottom:20px;">บันทึกใบหน้า</h2>
+                <h2 style="color:var(--primary);">บันทึกใบหน้า</h2>
                 <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video><div class="laser"></div></div>
-                <p id="stat3" style="margin-top:15px;">กรุณานิ่งสักครู่...</p>
+                <p id="stat3" style="text-align:center;">กรุณานิ่งสักครู่...</p>
                 <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันการลงทะเบียน</button>
             </div>
 
@@ -126,10 +131,12 @@
         // 1. เริ่มต้นระบบ AI
         async function initAI() {
             const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
-            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-            startCam(1);
+            try {
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                startCam(1);
+            } catch (e) { alert("โหลด AI ไม่สำเร็จ กรุณาเช็คอินเทอร์เน็ต"); }
         }
 
         // 2. ควบคุมกล้อง
@@ -140,22 +147,30 @@
             const stat = document.getElementById('stat'+p);
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 vid.srcObject = stream;
                 vid.onplay = () => {
                     const canvas = faceapi.createCanvasFromMedia(vid);
                     wrap.append(canvas);
+                    const displaySize = { width: vid.offsetWidth, height: vid.offsetHeight };
+                    faceapi.matchDimensions(canvas, displaySize);
+
                     detectInt = setInterval(async () => {
                         const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
                         if (det) {
                             currentDesc = Array.from(det.descriptor);
                             wrap.classList.add('detected');
                             btn.disabled = false;
                             stat.innerText = "พบใบหน้าแล้ว!";
+                            stat.style.color = "#00ff88";
                         } else {
                             wrap.classList.remove('detected');
                             btn.disabled = true;
                             stat.innerText = "กำลังค้นหาใบหน้า...";
+                            stat.style.color = "#ccc";
                         }
                     }, 400);
                 };
