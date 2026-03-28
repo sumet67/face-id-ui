@@ -106,23 +106,31 @@
         let currentDescriptor = null;
 
         // ฟังก์ชันโหลด Models จากโฟลเดอร์ใน GitHub ของคุณเอง
-        async function loadModels() {
+async function loadModels() {
             const msg = document.getElementById('load-msg');
             try {
-                // Path ชี้ไปที่โฟลเดอร์ models ใน repo ของคุณ
-                const MODEL_URL = './models'; 
+                // พยายามหา Path พื้นฐานของหน้าเว็บปัจจุบัน
+                const path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+                const MODEL_URL = window.location.origin + path + '/models';
                 
-                msg.innerText = "กำลังโหลด TinyFaceDetector...";
+                console.log("พยายามโหลด Model จาก:", MODEL_URL);
+
+                msg.innerText = "กำลังเชื่อมต่อกับ Models...";
+                
+                // โหลดทีละตัวเพื่อเช็คว่าติดที่ตัวไหน
                 await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                msg.innerText = "กำลังโหลด Landmarks...";
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                msg.innerText = "กำลังโหลด Recognition...";
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                msg.innerText = "โหลด Detector สำเร็จ...";
                 
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                msg.innerText = "โหลด Landmarks สำเร็จ...";
+                
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                msg.innerText = "ระบบ AI พร้อมทำงาน";
+
                 document.getElementById('loading-overlay').style.display = 'none';
             } catch (e) {
-                console.error(e);
-                msg.innerHTML = "โหลด AI ไม่สำเร็จ!<br><small>ตรวจสอบว่ามีไฟล์ในโฟลเดอร์ /models หรือยัง?</small>";
+                console.error("รายละเอียด Error:", e);
+                msg.innerHTML = "โหลด AI ไม่สำเร็จ!<br><small style='color:#ccc'>Error: " + e.message + "</small><br><button onclick='location.reload()' style='background:none; border:1px solid #fff; color:#fff; padding:5px; margin-top:10px; cursor:pointer;'>ลองใหม่อีกครั้ง</button>";
                 msg.style.color = "#ff4d4d";
             }
         }
