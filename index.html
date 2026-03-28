@@ -3,119 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID Attendance System</title>
+    <title>AI FaceID Attendance</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    
     <style>
         :root { --primary: #00f2fe; --accent: #4facfe; --success: #00ff88; --danger: #ff4d4d; --glass: rgba(255, 255, 255, 0.05); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Kanit', sans-serif; background: radial-gradient(circle, #1e293b, #050a18); color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
-
-        .app-container { width: 360px; height: 680px; background: var(--glass); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 30px; display: flex; flex-direction: column; position: relative; box-shadow: 0 40px 100px rgba(0,0,0,0.5); overflow: hidden; }
-
-        /* Phases */
-        .phase { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; animation: fadeIn 0.4s; }
+        body { font-family: 'Kanit', sans-serif; background: #050a18; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .app-container { width: 360px; height: 680px; background: var(--glass); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 30px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .phase { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; }
         .phase.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Scanner UI */
-        .scanner-view { width: 100%; height: 260px; border-radius: 25px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); display: flex; justify-content: center; align-items: center; }
+        .scanner-view { width: 100%; height: 260px; border-radius: 25px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); }
         .scanner-view.detected { border-color: var(--success); box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); pointer-events: none; }
-        .laser { position: absolute; width: 100%; height: 3px; background: var(--primary); box-shadow: 0 0 15px var(--primary); animation: scan 2s infinite ease-in-out; z-index: 5; }
+        .laser { position: absolute; width: 100%; height: 3px; background: var(--primary); animation: scan 2s infinite ease-in-out; z-index: 5; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
-
-        /* Inputs & Buttons */
-        input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Kanit'; font-size: 0.9rem; }
-        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; margin-top: auto; background: linear-gradient(90deg, var(--primary), var(--accent)); color: #000; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Kanit'; }
-        .btn-main:disabled { background: #555; color: #aaa; cursor: not-allowed; }
-        .btn-sub { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; margin-top: 10px; cursor: pointer; font-family: 'Kanit'; }
-
-        /* Dashboard */
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; font-family: 'Kanit'; }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; margin-top: auto; }
+        .btn-sub { width: 100%; padding: 10px; background: none; color: #ccc; border: none; margin-top: 10px; cursor: pointer; }
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 999; padding: 20px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.75rem; }
-        th, td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.8rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
         th { color: var(--primary); }
-        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: rgba(0,0,0,0.6); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); z-index: 500; font-size: 20px; }
-
-        /* Loading */
-        #loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
-        .spinner { border: 4px solid #333; border-top-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s infinite linear; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 500; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div id="loading-screen">
-            <div class="spinner"></div>
-            <p style="margin-top: 15px; color: var(--primary); font-size: 0.8rem;">กำลังโหลด AI Models...</p>
-        </div>
-
         <div class="phase active" id="phase1">
-            <h2 style="color: var(--primary); margin-bottom: 5px;">ลงเวลาทำงาน</h2>
-            <p style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 20px;">กรุณามองกล้องเพื่อยืนยันตัวตน</p>
-            <div class="scanner-view" id="wrapper1">
-                <video id="vid1" autoplay muted playsinline></video>
-                <div class="laser"></div>
-            </div>
-            <p id="stat1" style="margin-top: 15px; font-size: 0.8rem; color: var(--primary);">กำลังค้นหาใบหน้า...</p>
-            <button class="btn-main" id="btn1" onclick="submitAttendance()" disabled>สแกนเพื่อลงเวลา</button>
+            <h2 style="color:var(--primary); margin-bottom: 20px;">ลงเวลาทำงาน</h2>
+            <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted></video><div class="laser"></div></div>
+            <p id="stat1" style="margin-top:10px; font-size:0.8rem;">กำลังสแกนใบหน้า...</p>
+            <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลา (เข้า/ออก)</button>
             <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
         </div>
 
         <div class="phase" id="phase2">
-            <h2 style="color: var(--primary); margin-bottom: 20px;">ลงทะเบียนใหม่</h2>
-            <input type="text" id="reg-fname" placeholder="ชื่อจริง">
-            <input type="text" id="reg-lname" placeholder="นามสกุล">
-            <input type="text" id="reg-pos" placeholder="ตำแหน่ง">
+            <h2>ข้อมูลพนักงาน</h2>
+            <input type="text" id="reg-f" placeholder="ชื่อจริง">
+            <input type="text" id="reg-l" placeholder="นามสกุล">
+            <input type="text" id="reg-p" placeholder="ตำแหน่ง">
             <button class="btn-main" onclick="setPhase(3)">ถัดไป: สแกนใบหน้า</button>
             <button class="btn-sub" onclick="setPhase(1)">ยกเลิก</button>
         </div>
 
         <div class="phase" id="phase3">
-            <h2 style="color: var(--primary); margin-bottom: 20px;">สแกนใบหน้าเก็บข้อมูล</h2>
-            <div class="scanner-view" id="wrapper3">
-                <video id="vid3" autoplay muted playsinline></video>
-                <div class="laser"></div>
-            </div>
-            <p id="stat3" style="margin-top: 15px; font-size: 0.8rem; color: var(--primary);">กรุณานิ่งสักครู่...</p>
-            <button class="btn-main" id="btn3" onclick="submitRegistration()" disabled>บันทึกข้อมูลใบหน้า</button>
-            <button class="btn-sub" onclick="setPhase(2)">กลับไปแก้ไขข้อมูล</button>
+            <h2>ยืนยันใบหน้า</h2>
+            <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted></video><div class="laser"></div></div>
+            <p id="stat3" style="margin-top:10px;">กรุณานิ่งสักครู่...</p>
+            <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>บันทึกพนักงาน</button>
         </div>
 
         <div class="phase" id="phase4">
-            <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
-            <h2 id="res-title">สำเร็จ</h2>
-            <p id="res-msg" style="text-align: center; margin-top: 10px; opacity: 0.8; font-size: 0.9rem;"></p>
-            <button class="btn-main" onclick="setPhase(1)" style="margin-top: 30px;">กลับหน้าหลัก</button>
+            <h1 style="font-size: 50px;">✅</h1>
+            <p id="res-msg" style="text-align: center; padding: 20px;"></p>
+            <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
         </div>
     </div>
 
     <div class="admin-float" onclick="openAdmin()">📊</div>
 
     <div id="admin-panel">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="color: var(--primary);">Admin Dashboard</h2>
-            <button onclick="closeAdmin()" style="background: var(--danger); border: none; padding: 5px 15px; border-radius: 8px; color: white;">ปิด</button>
+        <div style="display:flex; justify-content: space-between;">
+            <h3>Admin Dashboard</h3>
+            <button onclick="closeAdmin()" style="color:red; background:none; border:none;">ปิด</button>
         </div>
-        <div style="margin-top: 20px;">
-            <button onclick="exportExcel()" style="padding: 8px 15px; border-radius: 8px; background: var(--success); border: none; font-weight: bold; margin-right: 10px;">Excel</button>
-            <button onclick="exportPDF()" style="padding: 8px 15px; border-radius: 8px; background: #fff; border: none; font-weight: bold;">PDF</button>
+        <div style="margin: 15px 0;">
+            <button onclick="exportExcel()" style="padding: 5px 15px; background:var(--success); border-radius:5px;">Excel</button>
+            <button onclick="exportPDF()" style="padding: 5px 15px; background:#fff; border-radius:5px; margin-left:5px;">PDF</button>
         </div>
-        <table id="logTable">
-            <thead>
-                <tr>
-                    <th>วันที่</th>
-                    <th>ID</th>
-                    <th>ชื่อ-นามสกุล</th>
-                    <th>เข้า</th>
-                    <th>ออก</th>
-                    <th>สถานะ</th>
-                </tr>
-            </thead>
+        <table>
+            <thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ-นามสกุล</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead>
             <tbody id="logBody"></tbody>
         </table>
     </div>
@@ -125,115 +85,68 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyfcRrKrpDypWE1UXZVM91heXVgnAyW5jft8ttuSTvVaEhMbstv4VQSRMyM0XERAwkh/exec'; 
-        let currentDescriptor = null;
-        let detectInterval = null;
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxFLtyrptfMpVpmqBT7KgYS3gqM8Oh2nTdGr3CdqMD--B1vOvsjk5UoWKMvn1SsbzZrpA/exec';
+        let currentDesc = null;
+        let detectInt = null;
 
-        // 1. โหลด AI Models
-        async function loadModels() {
-            const MODEL_URL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '') + '/models';
-            try {
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                document.getElementById('loading-screen').style.display = 'none';
-                startCamera(1);
-            } catch (e) {
-                alert("ไม่สามารถโหลด AI ได้ กรุณาเช็คโฟลเดอร์ models ใน GitHub");
-            }
+        async function init() {
+            const URL = 'https://script.google.com/macros/s/AKfycbxFLtyrptfMpVpmqBT7KgYS3gqM8Oh2nTdGr3CdqMD--B1vOvsjk5UoWKMvn1SsbzZrpA/exec';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
+            startCam(1);
         }
 
-        // 2. จัดการเฟสและกล้อง
-        async function startCamera(phaseNum) {
-            const video = document.getElementById('vid' + phaseNum);
-            const wrapper = document.getElementById('wrapper' + phaseNum);
-            const status = document.getElementById('stat' + phaseNum);
-            const btn = document.getElementById('btn' + phaseNum);
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                video.onplay = () => {
-                    const canvas = faceapi.createCanvasFromMedia(video);
-                    wrapper.append(canvas);
-                    const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
-                    faceapi.matchDimensions(canvas, displaySize);
-
-                    detectInterval = setInterval(async () => {
-                        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                        const ctx = canvas.getContext('2d');
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                        if (detection) {
-                            const resized = faceapi.resizeResults(detection, displaySize);
-                            drawFaceFrame(ctx, resized.landmarks);
-                            currentDescriptor = Array.from(detection.descriptor);
-                            wrapper.classList.add('detected');
-                            status.innerText = "ตรวจจับสำเร็จ!";
-                            status.style.color = "#00ff88";
-                            btn.disabled = false;
-                        } else {
-                            wrapper.classList.remove('detected');
-                            status.innerText = "กำลังค้นหาใบหน้า...";
-                            status.style.color = "#00f2fe";
-                            btn.disabled = true;
-                        }
-                    }, 200);
-                };
-            } catch (err) { alert("กล้องไม่ทำงาน: " + err); }
-        }
-
-        function setPhase(num) {
-            clearInterval(detectInterval);
-            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('video').forEach(v => { if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); });
-            document.querySelectorAll('canvas').forEach(c => c.remove());
-            document.getElementById('phase' + num).classList.add('active');
-            if(num === 1 || num === 3) startCamera(num);
-        }
-
-        // 3. ส่งข้อมูล (Attendance & Register)
-        async function submitAttendance() {
-            const btn = document.getElementById('btn1');
-            btn.innerText = "กำลังประมวลผล...";
-            btn.disabled = true;
-            
-            const payload = { action: 'checkin', faceDescriptor: currentDescriptor };
-            sendToGAS(payload);
-        }
-
-        async function submitRegistration() {
-            const btn = document.getElementById('btn3');
-            btn.innerText = "กำลังบันทึก...";
-            btn.disabled = true;
-
-            const payload = {
-                action: 'register',
-                firstName: document.getElementById('reg-fname').value,
-                lastName: document.getElementById('reg-lname').value,
-                position: document.getElementById('reg-pos').value,
-                faceDescriptor: currentDescriptor
+        async function startCam(p) {
+            const vid = document.getElementById('vid'+p);
+            const wrap = document.getElementById('wrapper'+p);
+            const btn = document.getElementById('btn'+p);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+            vid.srcObject = stream;
+            vid.onplay = () => {
+                const canvas = faceapi.createCanvasFromMedia(vid);
+                wrap.append(canvas);
+                detectInt = setInterval(async () => {
+                    const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                    if (det) {
+                        currentDesc = Array.from(det.descriptor);
+                        wrap.classList.add('detected');
+                        btn.disabled = false;
+                    } else {
+                        wrap.classList.remove('detected');
+                        btn.disabled = true;
+                    }
+                }, 300);
             };
-            sendToGAS(payload);
         }
 
-        async function sendToGAS(payload) {
-            try {
-                const response = await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                document.getElementById('res-msg').innerText = "ระบบประมวลผลสำเร็จ ข้อมูลถูกส่งไปที่ Google Sheets แล้ว";
-                setPhase(4);
-            } catch (e) { alert("Error: " + e); }
+        function setPhase(n) {
+            clearInterval(detectInt);
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById('phase'+n).classList.add('active');
+            if(n==1 || n==3) startCam(n);
         }
 
-        // 4. Admin & Dashboard
+        async function doAction(act) {
+            const payload = { 
+                action: act, 
+                faceDescriptor: currentDesc,
+                firstName: document.getElementById('reg-f').value,
+                lastName: document.getElementById('reg-l').value,
+                position: document.getElementById('reg-p').value
+            };
+            document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
+            setPhase(4);
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            document.getElementById('res-msg').innerText = "บันทึกข้อมูลเรียบร้อยแล้ว";
+        }
+
         function openAdmin() {
-            const p = prompt("รหัสผ่าน Admin:");
-            if (p === "1234") {
+            if (prompt("Pass:") === "1234") {
                 document.getElementById('admin-panel').style.display = 'block';
                 fetchLogs();
-            } else if (p !== null) alert("รหัสผ่านผิด!");
+            }
         }
-
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
 
         async function fetchLogs() {
@@ -248,27 +161,14 @@
             });
         }
 
-        function exportExcel() {
-            const wb = XLSX.utils.table_to_book(document.getElementById('logTable'));
-            XLSX.writeFile(wb, "Report_Attendance.xlsx");
+        function exportExcel() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('logTable')), "Report.xlsx"); }
+        function exportPDF() { 
+            const doc = new jspdf.jsPDF(); 
+            doc.autoTable({ html: '#logTable' }); 
+            doc.save("Report.pdf"); 
         }
 
-        function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.autoTable({ html: '#logTable' });
-            doc.save("Report_Attendance.pdf");
-        }
-
-        function drawFaceFrame(ctx, landmarks) {
-            ctx.strokeStyle = '#00ff88'; ctx.lineWidth = 2; ctx.beginPath();
-            const jaw = landmarks.getJawOutline();
-            ctx.moveTo(jaw[0].x, jaw[0].y);
-            jaw.forEach(p => ctx.lineTo(p.x, p.y));
-            ctx.stroke();
-        }
-
-        loadModels();
+        init();
     </script>
 </body>
 </html>
