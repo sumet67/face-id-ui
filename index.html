@@ -144,7 +144,7 @@
                 vid.onplay = () => {
                     // ไม่ใช้ Canvas วาดกรอบสี่เหลี่ยมแล้ว เราใช้ SVG คงที่แทน
                     detectInt = setInterval(async () => {
-                        const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceDescriptor();
+                        const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
                         if (det) {
                             currentDesc = Array.from(det.descriptor);
                             btn.disabled = false;
