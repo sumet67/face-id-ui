@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FaceID Integrated System</title>
+    <title>FaceID Single Block System</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00f2fe;
-            --secondary: #4facfe;
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
+            --accent: #4facfe;
+            --bg: #0b1120;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.12);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -20,209 +20,193 @@
             font-family: 'Kanit', sans-serif;
             background: radial-gradient(circle at center, #1e293b 0%, #050a18 100%);
             color: #fff;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 20px;
+            align-items: center;
+            overflow: hidden;
         }
 
-        h1 {
-            font-weight: 200;
-            letter-spacing: 5px;
-            margin-bottom: 50px;
-            text-shadow: 0 0 10px var(--primary);
-            text-align: center;
-        }
-
-        /* Container หลักที่รวม 3 ส่วน */
-        .app-container {
-            display: grid;
-            grid-template-columns: repeat(3, 320px);
-            gap: 30px;
-            max-width: 1100px;
-            width: 100%;
-        }
-
-        /* สไตล์การ์ด Glassmorphism */
-        .card {
+        /* Block เดียวหลัก */
+        .phone-container {
+            width: 340px;
+            height: 620px;
             background: var(--glass);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--border);
-            border-radius: 40px;
+            border-radius: 45px;
             padding: 40px 30px;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            height: 600px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.6);
+            transition: all 0.5s ease;
         }
 
-        .card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+        /* จัดการการแสดงผลแต่ละ Step */
+        .step {
+            display: none; /* ปิดไว้ก่อน */
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
         }
 
-        /* 1. ส่วนหน้าแรก (FaceID Intro) */
-        .face-outline {
-            width: 100px;
-            height: 130px;
-            border: 1px dashed var(--primary);
+        .step.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* UI Elements */
+        .face-icon {
+            width: 110px;
+            height: 140px;
+            border: 1.5px dashed var(--primary);
             border-radius: 50% 50% 45% 45%;
-            margin: 40px 0;
+            margin: 60px 0;
             position: relative;
         }
-        .face-outline::before {
-            content: "";
-            position: absolute;
-            top: 50%; width: 100%; height: 1px;
-            background: rgba(0, 242, 254, 0.5);
-        }
 
-        .btn-action {
-            margin-top: auto;
+        .scanner-frame {
             width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 15px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            color: #000;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
-        }
-
-        /* 2. ส่วนหน้าสแกน (Scanning Animation) */
-        .scanner-view {
-            width: 100%;
-            height: 250px;
+            height: 280px;
             background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400') center/cover;
-            border-radius: 25px;
+            border-radius: 30px;
             position: relative;
             overflow: hidden;
             border: 2px solid rgba(0, 242, 254, 0.3);
+            margin-top: 20px;
         }
-        .scan-bar {
+
+        .laser {
             position: absolute;
             width: 100%;
-            height: 4px;
+            height: 3px;
             background: var(--primary);
             box-shadow: 0 0 20px var(--primary);
-            animation: move-bar 3s infinite ease-in-out;
+            animation: move-laser 2s infinite ease-in-out;
         }
-        @keyframes move-bar {
+
+        @keyframes move-laser {
             0%, 100% { top: 0; }
             50% { top: 100%; }
         }
 
-        .progress-box { width: 100%; margin-top: 40px; }
-        .progress-track {
+        .progress-bar {
             width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            border-radius: 10px; margin-top: 10px; overflow: hidden;
+            border-radius: 10px; margin: 30px 0 10px 0; overflow: hidden;
         }
         .progress-fill {
-            width: 60%; height: 100%; background: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
+            width: 0%; height: 100%; background: var(--primary);
+            transition: width 3s linear;
         }
 
-        /* 3. ส่วนหน้าผลลัพธ์ (Success/Info) */
-        .badge {
-            background: rgba(0, 255, 136, 0.15);
-            color: #00ff88;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-bottom: 20px;
-        }
-        .profile-pic {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            padding: 5px;
-            margin-bottom: 15px;
+        /* Success Info */
+        .profile-img {
+            width: 100px; height: 100px; border-radius: 50%;
+            border: 2px solid var(--primary); padding: 5px; margin: 20px 0;
         }
 
-        .info-list { width: 100%; margin-top: 20px; }
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+        .info-row {
+            display: flex; justify-content: space-between; width: 100%;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.85rem;
         }
-        .info-item span:first-child { opacity: 0.5; }
-        .info-item span:last-child { color: var(--primary); }
 
-        /* Responsive */
-        @media (max-width: 1000px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                justify-items: center;
-            }
+        .btn {
+            margin-top: auto; width: 100%; padding: 16px;
+            border: none; border-radius: 18px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: #000; font-weight: 600; cursor: pointer;
+            font-family: 'Kanit';
+        }
+
+        .status-tag {
+            color: #00ff88; font-size: 0.9rem; margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 
-    <h1>FACIAL RECOGNITION SYSTEM</h1>
-
-    <div class="app-container">
+    <div class="phone-container" id="mainBlock">
         
-        <div class="card">
-            <div class="face-outline"></div>
+        <div class="step active" id="step1">
+            <div class="face-icon"></div>
             <h2 style="font-weight: 400; margin-bottom: 15px;">FaceID</h2>
-            <p style="text-align: center; font-size: 0.9rem; opacity: 0.7;">
-                ระบบสแกนใบหน้าอัตโนมัติ เพื่อยืนยันตัวตนบุคคลผ่านระบบฐานข้อมูล Cloud
+            <p style="text-align: center; opacity: 0.7; font-size: 0.9rem;">
+                กรุณากดปุ่มด้านล่างเพื่อเริ่มการสแกนใบหน้ายืนยันตัวตน
             </p>
-            <button class="btn-action">ลงทะเบียนใบหน้า</button>
+            <button class="btn" onclick="startScan()">เริ่มการสแกน</button>
         </div>
 
-        <div class="card">
-            <div class="scanner-view">
-                <div class="scan-bar"></div>
+        <div class="step" id="step2">
+            <div class="scanner-frame">
+                <div class="laser"></div>
             </div>
-            <div class="progress-box">
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                    <span>Scanning Process</span>
-                    <span style="color: var(--primary);">60%</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill"></div>
-                </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="fill"></div>
             </div>
-            <p style="margin-top: 25px; font-size: 0.8rem; opacity: 0.6;">กรุณามองตรงไปที่กล้อง...</p>
+            <div style="display: flex; justify-content: space-between; width: 100%; font-size: 0.8rem;">
+                <span>กำลังวิเคราะห์...</span>
+                <span id="percent">0%</span>
+            </div>
+            <p style="margin-top: 40px; opacity: 0.5; font-size: 0.8rem;">กรุณานิ่งและมองกล้อง</p>
         </div>
 
-        <div class="card">
-            <div class="badge">● ID CONFIRMED</div>
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" alt="John Smith" class="profile-pic">
-            <h3 style="font-weight: 400;">นายสมชาย ใจดี</h3>
-            <p style="font-size: 0.8rem; color: var(--primary); margin-top: 5px;">ตำแหน่ง: ผู้จัดการ</p>
+        <div class="step" id="step3">
+            <div class="status-tag">✔ ยืนยันตัวตนสำเร็จ</div>
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" class="profile-img">
+            <h3 style="font-weight: 400;">สมชาย ใจดี</h3>
+            <p style="color: var(--primary); font-size: 0.85rem;">Manager</p>
 
-            <div class="info-list">
-                <div class="info-item">
-                    <span>รหัสพนักงาน</span>
-                    <span>OC-PM-12004</span>
-                </div>
-                <div class="info-item">
-                    <span>เวลาเข้างาน</span>
-                    <span>09:54 AM</span>
-                </div>
-                <div class="info-item">
-                    <span>สถานะ</span>
-                    <span>ยืนยันตัวตนแล้ว</span>
-                </div>
+            <div style="width: 100%; margin-top: 30px;">
+                <div class="info-row"><span>รหัส</span><span>OC-PM-12004</span></div>
+                <div class="info-row"><span>เวลา</span><span>09:54 AM</span></div>
             </div>
 
-            <p style="margin-top: auto; font-size: 0.6rem; opacity: 0.3;">
-                Copyright © 2026 OneClick IT Consultancy.
-            </p>
+            <button class="btn" onclick="reset()">เสร็จสิ้น</button>
+            <p style="margin-top: 20px; font-size: 0.6rem; opacity: 0.2;">© 2026 OneClick IT</p>
         </div>
 
     </div>
 
+    <script>
+        function startScan() {
+            // ไปหน้า 2
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+            
+            let fill = document.getElementById('fill');
+            let percent = document.getElementById('percent');
+            let count = 0;
+
+            // จำลองการโหลด
+            let interval = setInterval(() => {
+                count += 1;
+                fill.style.width = count + '%';
+                percent.innerText = count + '%';
+
+                if (count >= 100) {
+                    clearInterval(interval);
+                    setTimeout(showResult, 500);
+                }
+            }, 30); // ความเร็วในการสแกน
+        }
+
+        function showResult() {
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step3').classList.add('active');
+        }
+
+        function reset() {
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('fill').style.width = '0%';
+        }
+    </script>
 </body>
 </html>
