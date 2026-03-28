@@ -142,20 +142,25 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 vid.srcObject = stream;
                 vid.onplay = () => {
-                    // ไม่ใช้ Canvas วาดกรอบสี่เหลี่ยมแล้ว เราใช้ SVG คงที่แทน
-                    detectInt = setInterval(async () => {
-                        const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                        if (det) {
-                            currentDesc = Array.from(det.descriptor);
-                            btn.disabled = false;
-                            stat.innerText = "พบใบหน้า";
-                            stat.style.color = "#00ff88";
-                        } else {
-                            btn.disabled = true;
-                            stat.innerText = "กรุณาวางหน้าในกรอบ";
-                            stat.style.color = "#fff";
-                        }
-                    }, 400); // ช้าลงนิดหน่อยเพื่อไม่ให้เปลืองโหลด
+                    
+                // ค้นหาบรรทัดที่มี detectInt เดิม แล้ววางโค้ดนี้ทับครับ
+                detectInt = setInterval(async () => {
+                // แก้ไข: ต้องเพิ่ม .withFaceLandmarks() เข้าไปก่อน .withFaceDescriptor()
+                const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions())
+                             .withFaceLandmarks() 
+                             .withFaceDescriptor();
+    
+                if (det) {
+                    currentDesc = Array.from(det.descriptor);
+                    btn.disabled = false;
+                    stat.innerText = "พบใบหน้าแล้ว!";
+                    stat.style.color = "#00ff88";
+                } else {
+                    btn.disabled = true;
+                    stat.innerText = "กรุณาวางหน้าในกรอบ";
+                    stat.style.color = "#fff";
+                }
+            }, 200);
                 };
             } catch (e) { console.error(e); }
         }
