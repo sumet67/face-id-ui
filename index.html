@@ -97,79 +97,143 @@
     </div>
 
     <script>
-        // *** ใส่ Web App URL ของคุณที่นี่ ***
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxEvDqjvEmgBY7Xk7O96CmT5eX-BA_gLUaV9-sbay_vBa4-5lbmpwW124tNnLHd7Xv1gA/exec'; 
+// *** 1. ใส่ Web App URL ของคุณที่นี่ ***
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxEvDqjvEmgBY7Xk7O96CmT5eX-BA_gLUaV9-sbay_vBa4-5lbmpwW124tNnLHd7Xv1gA/exec'; 
+
+const video = document.getElementById('video');
+let currentDescriptor = null;
+
+// ฟังก์ชันโหลด Model พร้อมระบบจัดการ Error
+async function loadModels() {
+    const loadingText = document.querySelector('#loading-overlay p');
+    try {
+        // ใช้ CDN สำรองที่เสถียรที่สุด
+        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
         
-        const video = document.getElementById('video');
-        let currentDescriptor = null;
+        loadingText.innerText = "กำลังโหลด Detector...";
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        
+        loadingText.innerText = "กำลังโหลด Landmarks...";
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        
+        loadingText.innerText = "กำลังโหลด Recognition...";
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
 
-        // โหลด Models เมื่อเริ่ม
-        async function loadModels() {
-            try {
-                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmarks68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                document.getElementById('loading-overlay').style.display = 'none';
-            } catch (e) {
-                alert("โหลด AI ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ");
+        document.getElementById('loading-overlay').style.display = 'none';
+        console.log("AI Models Loaded Successfully");
+    } catch (e) {
+        console.error("AI Load Error:", e);
+        loadingText.innerHTML = "โหลด AI ไม่สำเร็จ <br><button onclick='location.reload()' style='margin-top:10px; padding:5px 10px; border-radius:5px;'>ลองใหม่อีกครั้ง</button>";
+        loadingText.style.color = "#ff4d4d";
+    }
+}
+
+// เริ่มต้นโหลด
+loadModels();
+
+async function startCameraPhase() {
+    const fname = document.getElementById('fname').value;
+    const pos = document.getElementById('pos').value;
+    
+    if(!fname || !pos) {
+        alert("กรุณากรอกข้อมูลให้ครบถ้วนก่อนสแกน");
+        return;
+    }
+    
+    document.getElementById('phase1').classList.remove('active');
+    document.getElementById('phase2').classList.add('active');
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: "user",
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            } 
+        });
+        video.srcObject = stream;
+    } catch (err) {
+        alert("ไม่สามารถเปิดกล้องได้: " + err.message);
+        location.reload();
+    }
+
+    video.addEventListener('play', () => {
+        // ลบ Canvas เก่าออกก่อนถ้ามี
+        const oldCanvas = document.querySelector('canvas');
+        if(oldCanvas) oldCanvas.remove();
+
+        const canvas = faceapi.createCanvasFromMedia(video);
+        document.querySelector('.scanner-view').append(canvas);
+        
+        const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        const detectLoop = setInterval(async () => {
+            if (video.paused || video.ended) {
+                clearInterval(detectLoop);
+                return;
             }
-        }
-        loadModels();
 
-        async function startCameraPhase() {
-            if(!document.getElementById('fname').value || !document.getElementById('pos').value) return alert("กรุณากรอกข้อมูล");
+            const detection = await faceapi.detectSingleFace(
+                video, 
+                new faceapi.TinyFaceDetectorOptions()
+            ).withFaceLandmarks().withFaceDescriptor();
+
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
             
-            document.getElementById('phase1').classList.remove('active');
-            document.getElementById('phase2').classList.add('active');
+            if (detection) {
+                const resized = faceapi.resizeResults(detection, displaySize);
+                faceapi.draw.drawFaceLandmarks(canvas, resized);
+                
+                // เก็บค่าใบหน้า
+                currentDescriptor = Array.from(detection.descriptor);
+                
+                document.getElementById('status').innerText = "ตรวจจับใบหน้าสำเร็จ!";
+                document.getElementById('status').style.color = "#00ff88";
+                document.getElementById('save-btn').disabled = false;
+            } else {
+                document.getElementById('status').innerText = "กรุณามองกล้องตรงๆ...";
+                document.getElementById('status').style.color = "var(--primary)";
+                document.getElementById('save-btn').disabled = true;
+            }
+        }, 200);
+    });
+}
 
-            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
-            video.srcObject = stream;
+async function saveData() {
+    const saveBtn = document.getElementById('save-btn');
+    saveBtn.innerText = "กำลังส่งข้อมูล...";
+    saveBtn.disabled = true;
 
-            video.addEventListener('play', () => {
-                const canvas = faceapi.createCanvasFromMedia(video);
-                document.querySelector('.scanner-view').append(canvas);
-                const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
-                faceapi.matchDimensions(canvas, displaySize);
+    const payload = {
+        firstName: document.getElementById('fname').value,
+        lastName: document.getElementById('lname').value,
+        position: document.getElementById('pos').value,
+        faceDescriptor: currentDescriptor
+    };
 
-                setInterval(async () => {
-                    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    if (detection) {
-                        const resized = faceapi.resizeResults(detection, displaySize);
-                        faceapi.draw.drawFaceLandmarks(canvas, resized);
-                        currentDescriptor = Array.from(detection.descriptor);
-                        document.getElementById('status').innerText = "ตรวจจับสำเร็จ! กดบันทึกได้";
-                        document.getElementById('save-btn').disabled = false;
-                    } else {
-                        document.getElementById('status').innerText = "มองกล้องค้างไว้...";
-                        document.getElementById('save-btn').disabled = true;
-                    }
-                }, 200);
-            });
-        }
+    try {
+        // ส่งแบบ no-cors เพื่อข้ามปัญหา Security ของ Google
+        await fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload) 
+        });
 
-        async function saveData() {
-            document.getElementById('save-btn').innerText = "กำลังบันทึก...";
-            document.getElementById('save-btn').disabled = true;
+        // เปลี่ยนหน้าจอผลลัพธ์
+        document.getElementById('phase2').classList.remove('active');
+        document.getElementById('phase3').classList.add('active');
+        document.getElementById('res-name').innerText = payload.firstName + " " + (payload.lastName || "");
+        document.getElementById('res-pos').innerText = payload.position;
+        
+        // ปิดกล้อง
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
 
-            const payload = {
-                firstName: document.getElementById('fname').value,
-                lastName: document.getElementById('lname').value,
-                position: document.getElementById('pos').value,
-                faceDescriptor: currentDescriptor
-            };
-
-            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-
-            // แสดงหน้าสำเร็จ
-            document.getElementById('phase2').classList.remove('active');
-            document.getElementById('phase3').classList.add('active');
-            document.getElementById('res-name').innerText = payload.firstName + " " + payload.lastName;
-            document.getElementById('res-pos').innerText = payload.position;
-        }
-    </script>
-    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-</body>
-</html>
+    } catch (e) {
+        alert("บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่");
+        saveBtn.innerText = "ยืนยันและบันทึก";
+        saveBtn.disabled = false;
+    }
+}
