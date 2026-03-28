@@ -1,217 +1,117 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI FaceID System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #00f2fe; --accent: #4facfe; --bg: #050a18; --card: rgba(255, 255, 255, 0.05); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
-        body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center;}
-
-        .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100vh; }
-        .app-container { width: 350px; height: 640px; background: var(--card); backdrop-filter: blur(20px); border-radius: 35px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;}
-
-        .phase { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-        .phase.active { display: flex; }
-        
-        /* 🔥 Scanner Container & Frame 🔥 */
-        .scanner-view { width: 100%; height: 320px; border-radius: 20px; overflow: hidden; position: relative; background: #000; border: 2px solid rgba(255,255,255,0.1); margin: 20px 0; display: flex; align-items: center; justify-content: center;}
-        
-        /* กล้อง (Video) */
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); position: absolute; top:0; left:0; z-index: 1;}
-        
-        /* 🔥 กรอบวงรีเส้นประแบบ image_3.png (SVG) 🔥 */
-        .face-frame-svg { width: 100%; height: 100%; position: absolute; top:0; left:0; pointer-events: none; z-index: 3;}
-        
-        /* Laser line (Optional: ถ้าอยากเก็บไว้) */
-        .laser { position: absolute; width: 90%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; z-index: 4; left: 5%; opacity: 0.5;}
-        @keyframes scan { 0%, 100% { top: 10%; } 50% { top: 90%; } }
-        
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; text-align: center;}
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 15px; }
-        .btn-main:disabled { background: #444; color: #888; cursor: not-allowed; }
-        .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
-
-        /* Dashboard & Sidebar */
-        #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
-        .sidebar { width: 240px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 25px; }
-        .menu-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; color: #ccc; }
-        .menu-item.active { background: var(--card); color: var(--primary); }
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
-        .table-container { background: var(--card); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { color: var(--primary); background: rgba(255,255,255,0.02); }
-        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; font-size: 22px; z-index: 500; }
+        :root { --primary: #00f2fe; --bg: #050a18; }
+        body { background: var(--bg); color: white; font-family: 'Kanit', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-container { width: 350px; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .scanner-view { width: 100%; height: 320px; background: #000; border-radius: 20px; position: relative; overflow: hidden; margin: 20px 0; border: 2px solid var(--primary); }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .face-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        .phase { display: none; flex-direction: column; }
+        .active { display: flex; }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-main:disabled { background: #444; color: #888; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; }
     </style>
 </head>
 <body>
-
-    <div class="app-view" id="app-view">
-        <div class="app-container">
-            <div class="phase active" id="phase1">
-                <h2 style="color:var(--primary); text-align: center;">ลงเวลาทำงาน</h2>
-                <div class="scanner-view" id="wrapper1" style="height: 320px;">
-                    <video id="vid1" autoplay muted playsinline></video>
-                    <svg class="face-frame-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <ellipse cx="50" cy="50" rx="35" ry="45" style="fill:none; stroke:#00f2fe; stroke-width:0.8; stroke-dasharray:3 3;" />
-                        <line x1="15" y1="50" x2="85" y2="50" style="stroke:#00f2fe; stroke-width:0.8; stroke-dasharray:3 3;" />
-                    </svg>
-                    </div>
-                <p id="stat1" style="font-size:0.85rem; text-align:center;">วางใบหน้าในกรอบ</p>
-                <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>สแกนเพื่อลงเวลา</button>
-                <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
+    <div class="app-container">
+        <div id="phase1" class="phase active">
+            <h2 style="color:var(--primary)">ลงเวลาทำงาน</h2>
+            <div class="scanner-view">
+                <video id="vid1" autoplay muted playsinline></video>
+                <svg class="face-frame" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <ellipse cx="50" cy="50" rx="35" ry="40" style="fill:none; stroke:var(--primary); stroke-width:0.6; stroke-dasharray:3 3;" />
+                    <line x1="15" y1="50" x2="85" y2="50" style="stroke:var(--primary); stroke-width:0.6; stroke-dasharray:3 3;" />
+                </svg>
             </div>
+            <p id="stat1">กำลังโหลด AI...</p>
+            <button id="btn1" class="btn-main" onclick="doAction('checkin')" disabled>สแกนลงเวลา</button>
+            <button style="background:none; color:#aaa; border:none; margin-top:10px; cursor:pointer;" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
+        </div>
 
-            <div class="phase" id="phase2">
-                <h2 style="color:var(--primary); margin-bottom:20px;">ข้อมูลพนักงาน</h2>
-                <input type="text" id="reg-f" placeholder="ชื่อจริง">
-                <input type="text" id="reg-l" placeholder="นามสกุล">
-                <input type="text" id="reg-p" placeholder="ตำแหน่ง">
-                <button class="btn-main" onclick="setPhase(3)">ถัดไป: สแกนใบหน้า</button>
-                <button class="btn-sub" onclick="setPhase(1)">ยกเลิก</button>
-            </div>
+        <div id="phase2" class="phase">
+            <h2 style="color:var(--primary)">ข้อมูลพนักงาน</h2>
+            <input type="text" id="reg-f" placeholder="ชื่อจริง">
+            <input type="text" id="reg-l" placeholder="นามสกุล">
+            <input type="text" id="reg-p" placeholder="ตำแหน่ง">
+            <button class="btn-main" onclick="setPhase(3)">ไปหน้าสแกนใบหน้า</button>
+            <button style="background:none; color:#aaa; border:none; margin-top:10px; cursor:pointer;" onclick="setPhase(1)">ยกเลิก</button>
+        </div>
 
-            <div class="phase" id="phase3">
-                <h2 style="color:var(--primary);">บันทึกใบหน้า</h2>
-                <div class="scanner-view" id="wrapper3" style="height: 320px;">
-                    <video id="vid3" autoplay muted playsinline></video>
-                    <svg class="face-frame-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <ellipse cx="50" cy="50" rx="35" ry="45" style="fill:none; stroke:#00f2fe; stroke-width:0.8; stroke-dasharray:3 3;" />
-                        <line x1="15" y1="50" x2="85" y2="50" style="stroke:#00f2fe; stroke-width:0.8; stroke-dasharray:3 3;" />
-                    </svg>
-                </div>
-                <p id="stat3" style="text-align:center;">มองตรง นิ่งสักครู่...</p>
-                <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>บันทึกพนักงาน</button>
+        <div id="phase3" class="phase">
+            <h2 style="color:var(--primary)">บันทึกใบหน้า</h2>
+            <div class="scanner-view">
+                <video id="vid3" autoplay muted playsinline></video>
+                <svg class="face-frame" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <ellipse cx="50" cy="50" rx="35" ry="40" style="fill:none; stroke:var(--primary); stroke-width:0.6; stroke-dasharray:3 3;" />
+                </svg>
             </div>
-
-            <div class="phase" id="phase4">
-                <div style="font-size:50px;">✅</div>
-                <p id="res-msg" style="text-align:center; padding:20px;"></p>
-                <button class="btn-main" onclick="setPhase(1)">เสร็จสิ้น</button>
-            </div>
+            <p id="stat3">กรุณาวางหน้าในกรอบ</p>
+            <button id="btn3" class="btn-main" onclick="doAction('register')" disabled>บันทึกพนักงาน</button>
         </div>
     </div>
 
-    <div class="admin-float" onclick="openAdmin()">📊</div>
-    <div id="admin-panel">
-        <div style="display:flex; height:100%;">
-            <div class="sidebar">
-                <h2>Admin</h2>
-                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานลงเวลา</div>
-                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
-                <div class="menu-item" style="margin-top:auto; color: #ff4d4d;" onclick="closeAdmin()">🚪 ออกจากระบบ</div>
-            </div>
-            <div class="main-content">
-                <div id="tab-report" class="tab-content" style="display:block;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;"><h3>รายงานวันนี้</h3><button onclick="exportExcel('logTable')" style="padding:8px 15px; background:#00ff88; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Excel</button></div>
-                    <div class="table-container"><table id="logTable"><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ-นามสกุล</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
-                </div>
-                <div id="tab-emp" class="tab-content" style="display:none;">
-                    <h3>รายชื่อพนักงาน</h3>
-                    <div class="table-container"><table id="empTable"><thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th></tr></thead><tbody id="empBody"></tbody></table></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbw7Fnb8Hbh7OQCq2DsUNIPHc3WY1vnkMLdoHj95NinCsBGDFY5zjU6PwgiIMLOKfqI21g/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx0AIb7i1dwD87yxNiSJuchGP2j5w2E-fRKPe6Z3ENN4BvuLo6NbpM9PtLuHlDoyDJ94Q/exec'; 
         let currentDesc = null;
         let detectInt = null;
 
         async function initAI() {
             const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
             await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL); // แก้บั๊กสแกน
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             startCam(1);
         }
 
         async function startCam(p) {
-            const vid = document.getElementById('vid'+p);
-            const wrap = document.getElementById('wrapper'+p);
-            const btn = document.getElementById('btn'+p);
-            const stat = document.getElementById('stat'+p);
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                vid.srcObject = stream;
-                vid.onplay = () => {
-                    
-                // ค้นหาบรรทัดที่มี detectInt เดิม แล้ววางโค้ดนี้ทับครับ
+            const vid = document.getElementById('vid' + p);
+            const btn = document.getElementById('btn' + p);
+            const stat = document.getElementById('stat' + p);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            vid.srcObject = stream;
+            vid.onplay = () => {
                 detectInt = setInterval(async () => {
-                // แก้ไข: ต้องเพิ่ม .withFaceLandmarks() เข้าไปก่อน .withFaceDescriptor()
-                const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions())
-                             .withFaceLandmarks() 
-                             .withFaceDescriptor();
-    
-                if (det) {
-                    currentDesc = Array.from(det.descriptor);
-                    btn.disabled = false;
-                    stat.innerText = "พบใบหน้าแล้ว!";
-                    stat.style.color = "#00ff88";
-                } else {
-                    btn.disabled = true;
-                    stat.innerText = "กรุณาวางหน้าในกรอบ";
-                    stat.style.color = "#fff";
-                }
-            }, 200);
-                };
-            } catch (e) { console.error(e); }
+                    const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                    if (det) {
+                        currentDesc = Array.from(det.descriptor);
+                        btn.disabled = false;
+                        stat.innerText = "พบใบหน้า - พร้อมบันทึก";
+                        stat.style.color = "#00ff88";
+                    } else {
+                        btn.disabled = true;
+                        stat.innerText = "กรุณาวางหน้าในกรอบ";
+                        stat.style.color = "white";
+                    }
+                }, 400);
+            };
         }
 
         function setPhase(n) {
             clearInterval(detectInt);
             document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('video').forEach(v => { if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); });
-            document.getElementById('phase'+n).classList.add('active');
+            document.getElementById('phase' + n).classList.add('active');
             if(n==1 || n==3) startCam(n);
         }
 
         async function doAction(act) {
-            const payload = {
-                action: act,
-                faceDescriptor: currentDesc,
-                firstName: document.getElementById('reg-f').value || "",
-                lastName: document.getElementById('reg-l').value || "",
-                position: document.getElementById('reg-p').value || ""
+            const payload = { 
+                action: act, faceDescriptor: currentDesc,
+                firstName: document.getElementById('reg-f').value,
+                lastName: document.getElementById('reg-l').value,
+                position: document.getElementById('reg-p').value
             };
-            
-            document.getElementById('res-msg').innerText = "กำลังส่งข้อมูล...";
-            setPhase(4);
-        
-            try {
-                // 🔥 เปลี่ยนจาก 'no-cors' เป็น 'cors' และใช้ฟอร์แมตที่ส่งค่าได้จริง
-                const response = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                
-                // รอรับข้อความตอบกลับจาก Google Sheets
-                const result = await response.text();
-                document.getElementById('res-msg').innerText = result || "บันทึกเรียบร้อย!";
-            } catch (e) {
-                document.getElementById('res-msg').innerText = "เกิดข้อผิดพลาดในการส่งข้อมูล: " + e;
-            }
+            await fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) });
+            alert("บันทึกข้อมูลเรียบร้อย!");
+            location.reload();
         }
-
-        function openAdmin() { if (prompt("รหัสผ่าน:") === "1234") { document.getElementById('admin-panel').style.display = 'block'; document.getElementById('app-view').style.display = 'none'; fetchData(); } }
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('app-view').style.display = 'flex'; setPhase(1); }
-        function switchTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none'); document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active')); document.getElementById(id).style.display = 'block'; document.getElementById('m-' + id.split('-')[1]).classList.add('active');}
-        async function fetchData() {
-            const logRes = await fetch(scriptURL + "?action=getLogs");
-            const logs = await logRes.json();
-            document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]} ${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-            const empRes = await fetch(scriptURL + "?action=getEmployees");
-            const emps = await empRes.json();
-            document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
-        }
-        function exportExcel(id) { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById(id)), "Report.xlsx"); }
 
         initAI();
     </script>
