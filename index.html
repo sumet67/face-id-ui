@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID Premium Full-System</title>
+    <title>AI FaceID Premium Full-System v3</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
@@ -17,7 +17,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; }
 
-        /* App View */
+        /* UI ส่วนหลัก */
         .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .app-container { width: 350px; height: 620px; background: var(--card); backdrop-filter: blur(25px); border-radius: 40px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; }
         .phase { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
@@ -29,22 +29,22 @@
         .laser { position: absolute; width: 100%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
-        /* UI */
+        /* Inputs & Buttons */
         input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; outline: none; }
         .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
-        /* Custom Dialogs & Modals */
+        /* Modals & Dialogs */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,5,15,0.85); backdrop-filter:blur(15px); z-index:5000; align-items:center; justify-content:center; }
         .modal-box { background: var(--glass); width:380px; padding:35px; border-radius:35px; border:1px solid var(--border); text-align:center; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes modalPop { from { opacity: 0; transform: scale(0.85) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes modalPop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
         
         label { display: block; text-align: left; font-size: 0.75rem; color: var(--primary); margin: 0 0 5px 6px; font-weight: 600; }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { background: var(--glass); border: 1px solid var(--border); padding: 16px 25px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); transform: translateX(120%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.26, 1.55); border-left: 5px solid var(--primary); }
+        .toast { background: var(--glass); border: 1px solid var(--border); padding: 16px 25px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: 0.5s; border-left: 5px solid var(--primary); }
         .toast.show { transform: translateX(0); }
 
-        /* Admin UI */
+        /* Admin Layout */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 30px; }
         .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; transition: 0.3s; }
@@ -54,9 +54,6 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; }
-        .sync-info { font-size: 0.7rem; color: var(--success); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-        .pulse { width: 7px; height: 7px; background: var(--success); border-radius: 50%; animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -82,13 +79,21 @@
             <label>ชื่อจริง</label><input type="text" id="edit-f">
             <label>นามสกุล</label><input type="text" id="edit-l">
             <label>ตำแหน่ง</label>
-            <select id="edit-p">
-                <option value="ผู้บริหาร">ผู้บริหาร</option>
-                <option value="ครู">ครู</option>
-                <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
-            </select>
+            <select id="edit-p"><option value="ผู้บริหาร">ผู้บริหาร</option><option value="ครู">ครู</option><option value="เจ้าหน้าที่">เจ้าหน้าที่</option></select>
             <button class="btn-main" onclick="submitEdit()">บันทึกการแก้ไข</button>
             <button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button>
+        </div>
+    </div>
+
+    <div id="modal-gps" class="modal-overlay">
+        <div class="modal-box">
+            <h3>📍 ตั้งค่าพิกัดสำนักงาน</h3>
+            <label>Latitude</label><input type="number" id="set-lat" step="any">
+            <label>Longitude</label><input type="number" id="set-lng" step="any">
+            <label>รัศมี (เมตร)</label><input type="number" id="set-radius" value="100">
+            <div style="color:var(--primary); cursor:pointer; font-size:0.85rem; margin-bottom:15px" onclick="getCurrentLoc()">🎯 ดึงพิกัดปัจจุบันจาก GPS</div>
+            <button class="btn-main" onclick="saveSettings()">บันทึกพิกัด</button>
+            <button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button>
         </div>
     </div>
 
@@ -97,13 +102,12 @@
             <div class="phase active" id="phase1">
                 <h2 style="color:var(--primary);">AI FACE ID</h2>
                 <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted playsinline></video><div class="laser"></div></div>
-                <p id="stat1">กำลังค้นหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
                 <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงาน</button>
             </div>
             
             <div class="phase" id="phase2">
-                <h3>ข้อมูลพนักงาน</h3>
+                <h3>ลงทะเบียน</h3>
                 <input type="text" id="reg-f" placeholder="ชื่อจริง">
                 <input type="text" id="reg-l" placeholder="นามสกุล">
                 <select id="reg-p"><option value="ผู้บริหาร">ผู้บริหาร</option><option value="ครู">ครู</option><option value="เจ้าหน้าที่">เจ้าหน้าที่</option></select>
@@ -112,8 +116,7 @@
             </div>
 
             <div class="phase" id="phase3">
-                <h3>บันทึกใบหน้า</h3>
-                <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video><div class="laser"></div></div>
+                <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video></div>
                 <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันลงทะเบียน</button>
             </div>
 
@@ -142,12 +145,12 @@
                 <h2 style="color:var(--primary); margin-bottom:30px;">ADMIN</h2>
                 <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานวันนี้</div>
                 <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
+                <div class="menu-item" onclick="openGPSModal()">📍 ตั้งค่า GPS</div>
                 <div class="menu-item" style="margin-top:auto; color:#ff4d4d;" onclick="closeAdmin()">🚪 ออกจากระบบ</div>
             </div>
             <div class="main-content">
-                <div class="sync-info"><div class="pulse"></div> Real-time Update Active</div>
                 <div id="tab-report" class="tab-content">
-                    <h3>รายงานประจำวัน</h3>
+                    <h3>รายงานประจำวัน (Real-time)</h3>
                     <div class="table-container"><table><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
                 </div>
                 <div id="tab-emp" class="tab-content" style="display:none;">
@@ -160,7 +163,7 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxzJcJEEWW-vtytGQfO0z5paz8OifXw4toViTRsO_HYfzyUCPChpMXbFKP_U4VVvMIGag/exec'; 
-        let currentDesc = null, syncInt = null, detectInt = null;
+        let currentDesc = null, syncInt = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100};
 
         function showToast(msg) {
             const c = document.getElementById('toast-container');
@@ -170,29 +173,18 @@
             setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(), 500);}, 3000);
         }
 
-        function myConfirm(title, msg) {
-            return new Promise(res => {
-                document.getElementById('dialog-icon').innerText = '⚠️';
-                document.getElementById('dialog-title').innerText = title;
-                document.getElementById('dialog-msg').innerText = msg;
-                document.getElementById('btn-dialog-cancel').style.display = 'block';
-                toggleModal('custom-dialog', true);
-                document.getElementById('btn-dialog-ok').onclick = () => { toggleModal('custom-dialog', false); res(true); };
-                document.getElementById('btn-dialog-cancel').onclick = () => { toggleModal('custom-dialog', false); res(false); };
-            });
-        }
-
         async function initAI() {
             const URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
+            const res = await fetch(scriptURL + "?action=getSettings");
+            officeLoc = await res.json();
             startCam(1);
         }
 
         async function startCam(p) {
-            const vid = document.getElementById('vid'+p), wrap = document.getElementById('wrapper'+p);
-            const btn = document.getElementById('btn'+p);
+            const vid = document.getElementById('vid'+p), wrap = document.getElementById('wrapper'+p), btn = document.getElementById('btn'+p);
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             vid.srcObject = stream;
             vid.onplay = () => {
@@ -201,9 +193,8 @@
                 detectInt = setInterval(async () => {
                     const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
                     canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
-                    if(det) {
-                        currentDesc = Array.from(det.descriptor); wrap.classList.add('detected'); btn.disabled = false;
-                    } else { wrap.classList.remove('detected'); btn.disabled = true; }
+                    if(det) { currentDesc = Array.from(det.descriptor); wrap.classList.add('detected'); btn.disabled = false; } 
+                    else { wrap.classList.remove('detected'); btn.disabled = true; }
                 }, 400);
             };
         }
@@ -218,12 +209,13 @@
         }
 
         async function doAction(act) {
-            const p = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value };
-            setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-            const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
-            const txt = await res.text();
-            document.getElementById('res-msg').innerText = txt;
-            document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const p = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value, lat:pos.coords.latitude, lng:pos.coords.longitude };
+                setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
+                const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
+                const txt = await res.text(); document.getElementById('res-msg').innerText = txt;
+                document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
+            });
         }
 
         function toggleModal(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; }
@@ -233,25 +225,20 @@
                 toggleModal('modal-login', false); document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none';
                 fetchData(); syncInt = setInterval(fetchData, 5000);
-                showToast("เข้าสู่ระบบแอดมินสำเร็จ");
-            } else showToast("รหัสผ่านไม่ถูกต้อง");
+                showToast("ยินดีต้อนรับ Admin");
+            } else showToast("รหัสไม่ถูกต้อง");
         }
 
-        // --- ฟังก์ชันดึงข้อมูลพนักงาน (คืนปุ่มแก้ไขกลับมาแล้ว!) ---
         async function fetchData() {
             try {
                 const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-                
                 const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
-                document.getElementById('empBody').innerHTML = emps.map(r => `<tr>
-                    <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td>
-                    <td>
-                        <button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 10px; border-radius:8px; cursor:pointer;">แก้ไข</button>
-                        <button onclick="handleDel('${r[0]}','${r[1]}')" style="background:none; border:1px solid var(--error); color:var(--error); padding:4px 10px; border-radius:8px; cursor:pointer; margin-left:5px">ลบ</button>
-                    </td>
-                </tr>`).join('');
-            } catch(e) {}
+                document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
+                    <button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 8px; border-radius:8px; cursor:pointer;">แก้ไข</button>
+                    <button onclick="handleDel('${r[0]}','${r[1]}')" style="background:none; border:1px solid var(--error); color:var(--error); padding:4px 8px; border-radius:8px; cursor:pointer; margin-left:5px">ลบ</button>
+                </td></tr>`).join('');
+            } catch(e){}
         }
 
         function openEdit(id,f,l,p) { 
@@ -262,15 +249,30 @@
 
         async function submitEdit() {
             const p = { action:"editEmployee", id:document.getElementById('edit-id').value, firstName:document.getElementById('edit-f').value, lastName:document.getElementById('edit-l').value, position:document.getElementById('edit-p').value };
-            await fetch(scriptURL, {method:'POST', body:JSON.stringify(p)});
-            toggleModal('modal-edit', false); fetchData(); showToast("อัปเดตข้อมูลพนักงานแล้ว");
+            await fetch(scriptURL, {method:'POST', body:JSON.stringify(p)}); 
+            toggleModal('modal-edit', false); fetchData(); showToast("อัปเดตข้อมูลแล้ว");
         }
 
-        async function handleDel(id, name) {
-            if(await myConfirm("ยืนยัน", `ต้องการลบคุณ ${name}?`)) {
-                await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})});
-                fetchData(); showToast("ลบข้อมูลสำเร็จ");
-            }
+        function openGPSModal() {
+            document.getElementById('set-lat').value = officeLoc.lat;
+            document.getElementById('set-lng').value = officeLoc.lng;
+            document.getElementById('set-radius').value = officeLoc.radius;
+            toggleModal('modal-gps', true);
+        }
+
+        function getCurrentLoc() {
+            navigator.geolocation.getCurrentPosition(p => {
+                document.getElementById('set-lat').value = p.coords.latitude;
+                document.getElementById('set-lng').value = p.coords.longitude;
+                showToast("ดึงพิกัดปัจจุบันสำเร็จ");
+            });
+        }
+
+        async function saveSettings() {
+            const p = { action:"saveSettings", lat:parseFloat(document.getElementById('set-lat').value), lng:parseFloat(document.getElementById('set-lng').value), radius:parseInt(document.getElementById('set-radius').value) };
+            await fetch(scriptURL,{method:'POST', body:JSON.stringify(p)});
+            officeLoc = {lat:p.lat, lng:p.lng, radius:p.radius};
+            toggleModal('modal-gps', false); showToast("บันทึกพิกัดสำเร็จ");
         }
 
         function switchTab(id) { 
