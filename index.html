@@ -3,17 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID Geofence Pro</title>
+    <title>AI FaceID Premium System</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
-        :root { --primary: #00f2fe; --accent: #4facfe; --bg: #050a18; --card: rgba(255, 255, 255, 0.05); }
+        :root { 
+            --primary: #00f2fe; 
+            --accent: #4facfe; 
+            --bg: #050a18; 
+            --card: rgba(255, 255, 255, 0.05);
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(0, 242, 254, 0.3);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; }
 
+        /* UI ทั่วไป */
         .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .app-container { width: 350px; height: 620px; background: var(--card); backdrop-filter: blur(25px); border-radius: 40px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; }
-
+        
         .phase { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
         .phase.active { display: flex; justify-content: center; }
         
@@ -23,31 +31,65 @@
         canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); pointer-events: none; }
         .laser { position: absolute; width: 100%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
-        
-        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; outline: none; appearance: none; }
-        select option { background: #050a18; color: #fff; }
-        
-        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(45deg, var(--primary), var(--accent)); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-main:disabled { background: #333; color: #777; cursor: not-allowed; }
+
+        /* Input & Select สไตล์พรีเมียม */
+        input, select { 
+            width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; 
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); 
+            color: #fff; outline: none; transition: 0.3s;
+        }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0,242,254,0.2); }
+        select option { background: #0f172a; }
+
+        /* ปุ่มกดหลัก (Gradient) */
+        .btn-main { 
+            width: 100%; padding: 16px; border: none; border-radius: 18px; 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); 
+            color: #050a18; font-weight: bold; font-size: 1rem; cursor: pointer; 
+            transition: 0.3s; margin-top: 10px; box-shadow: 0 8px 15px rgba(0, 242, 254, 0.2);
+        }
+        .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 12px 20px rgba(0, 242, 254, 0.3); }
+        .btn-main:active { transform: translateY(0); }
+        .btn-main:disabled { background: #333; color: #777; cursor: not-allowed; box-shadow: none; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
-        /* Admin Dashboard */
+        /* --- MODERN POPUP DESIGN (Symmetry for all Modals) --- */
+        .modal-overlay { 
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background: rgba(0, 5, 15, 0.85); backdrop-filter: blur(12px); 
+            z-index:2000; align-items:center; justify-content:center; 
+        }
+        .modal-box { 
+            background: var(--glass); 
+            width: 380px; padding: 40px; border-radius: 35px; 
+            border: 1px solid var(--border); text-align: center; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            animation: modalFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalFade { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        .modal-box h3 { color: var(--primary); font-size: 1.5rem; margin-bottom: 25px; letter-spacing: 1px; }
+        label { display: block; text-align: left; font-size: 0.75rem; color: var(--primary); margin: 0 0 6px 6px; font-weight: 600; }
+        
+        /* ปุ่มพิเศษใน Modal */
+        .btn-modal-save { 
+            width: 100%; padding: 18px; border: none; border-radius: 20px; 
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); 
+            color: #050a18; font-weight: 700; font-size: 1.1rem; cursor: pointer; 
+            margin-top: 15px; transition: 0.3s; box-shadow: 0 10px 20px rgba(0, 242, 254, 0.3);
+        }
+        .btn-modal-cancel { color: #ef4444; margin-top: 15px; cursor: pointer; font-size: 0.9rem; border: none; background: none; }
+
+        /* Admin UI */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 30px; }
-        .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; }
+        .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; transition: 0.3s; }
         .menu-item.active { background: rgba(0, 242, 254, 0.1); color: var(--primary); font-weight: 600; }
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .table-container { background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-top: 20px; }
+        .table-container { background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
-
-        /* Modals */
-        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:2000; align-items:center; justify-content:center; }
-        .modal-box { background: rgba(15, 23, 42, 0.9); width:380px; padding:40px; border-radius:35px; border: 1px solid rgba(0, 242, 254, 0.3); text-align:center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        .btn-gps-save { width: 100%; padding: 18px; border: none; border-radius: 20px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #050a18; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-        
-        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; }
-        label { display: block; text-align: left; font-size: 0.75rem; color: var(--primary); margin: 5px 0 5px 5px; text-transform: uppercase; }
+        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; box-shadow: 0 10px 20px rgba(0,242,254,0.4); }
     </style>
 </head>
 <body>
@@ -55,7 +97,7 @@
     <div class="app-view" id="app-view">
         <div class="app-container">
             <div class="phase active" id="phase1">
-                <h2 style="color:var(--primary);">AI FACE ID</h2>
+                <h2 style="color:var(--primary); letter-spacing: 2px;">AI FACE ID</h2>
                 <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted playsinline></video><div class="laser"></div></div>
                 <p id="stat1" style="color:#aaa;">กำลังค้นหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
@@ -85,19 +127,29 @@
 
             <div class="phase" id="phase4">
                 <div id="res-icon" style="font-size:70px; margin-bottom:20px;">⏳</div>
-                <p id="res-msg" style="text-align:center; white-space: pre-line;"></p>
-                <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
+                <p id="res-msg" style="text-align:center; white-space: pre-line; font-size:1.1rem;"></p>
+                <button class="btn-main" style="margin-top: 30px" onclick="setPhase(1)">ตกลง</button>
             </div>
         </div>
     </div>
 
     <div class="admin-float" onclick="toggleModal('modal-pass', true)">📊</div>
 
+    <div id="modal-pass" class="modal-overlay">
+        <div class="modal-box">
+            <h3>🔒 แผงควบคุม</h3>
+            <p style="color:#777; font-size:0.8rem; margin-bottom:15px;">กรุณาระบุรหัสผ่านเพื่อเข้าสู่ระบบ</p>
+            <input type="password" id="admin-pass" placeholder="••••" style="text-align:center; font-size:2rem; letter-spacing:10px;">
+            <button class="btn-modal-save" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
+            <button class="btn-modal-cancel" onclick="toggleModal('modal-pass', false)">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
     <div id="modal-edit" class="modal-overlay">
         <div class="modal-box">
-            <h3>📝 แก้ไขข้อมูล</h3>
+            <h3>📝 แก้ไขพนักงาน</h3>
             <input type="hidden" id="edit-id">
-            <label>ชื่อ</label><input type="text" id="edit-f">
+            <label>ชื่อจริง</label><input type="text" id="edit-f">
             <label>นามสกุล</label><input type="text" id="edit-l">
             <label>ตำแหน่ง</label>
             <select id="edit-p">
@@ -105,29 +157,20 @@
                 <option value="ครู">ครู</option>
                 <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
             </select>
-            <button class="btn-main" onclick="submitEdit()">บันทึกการแก้ไข</button>
-            <button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button>
-        </div>
-    </div>
-
-    <div id="modal-pass" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🔒 Security Check</h3>
-            <input type="password" id="admin-pass" placeholder="••••" style="text-align:center; font-size:1.5rem; letter-spacing:10px; margin-top:20px;">
-            <button class="btn-main" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
-            <button class="btn-sub" onclick="toggleModal('modal-pass', false)">ปิด</button>
+            <button class="btn-modal-save" onclick="submitEdit()">อัปเดตข้อมูล</button>
+            <button class="btn-modal-cancel" onclick="toggleModal('modal-edit', false)">ยกเลิกการแก้ไข</button>
         </div>
     </div>
 
     <div id="modal-gps" class="modal-overlay">
         <div class="modal-box">
-            <h3>📍 ตั้งค่าจุดเช็คอิน</h3>
+            <h3>📍 พิกัดสถานที่</h3>
             <label>Latitude</label><input type="number" id="set-lat" step="any">
             <label>Longitude</label><input type="number" id="set-lng" step="any">
             <label>Radius (Meters)</label><input type="number" id="set-radius">
-            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin-bottom:10px;" onclick="getCurrentLoc()">🎯 ใช้ตำแหน่งปัจจุบันของฉัน</div>
-            <button class="btn-gps-save" onclick="saveSettings()">บันทึกพิกัดสถานที่</button>
-            <button class="btn-sub" style="color:#ff4d4d; margin-top:10px;" onclick="toggleModal('modal-gps', false)">ปิดหน้าต่าง</button>
+            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin:10px 0 20px 0;" onclick="getCurrentLoc()">🎯 ใช้พิกัดปัจจุบันของคุณ</div>
+            <button class="btn-modal-save" onclick="saveSettings()">บันทึกพิกัด</button>
+            <button class="btn-modal-cancel" onclick="toggleModal('modal-gps', false)">ปิด</button>
         </div>
     </div>
 
@@ -217,7 +260,7 @@
             if(document.getElementById('admin-pass').value === "1234") {
                 toggleModal('modal-pass', false); document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none'; fetchData();
-            } else alert("รหัสผิด");
+            } else alert("รหัสผ่านไม่ถูกต้อง");
         }
 
         async function fetchData() {
@@ -241,7 +284,7 @@
             await fetch(scriptURL, {method:'POST', body:JSON.stringify(p)}); toggleModal('modal-edit', false); fetchData();
         }
 
-        async function handleDel(id) { if(confirm("ลบพนักงาน?")) { await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})}); fetchData(); } }
+        async function handleDel(id) { if(confirm("ต้องการลบข้อมูลพนักงานคนนี้หรือไม่?")) { await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})}); fetchData(); } }
 
         function switchTab(id) { 
             document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
@@ -252,7 +295,7 @@
         async function saveSettings() {
             const p = { action:"saveSettings", lat:parseFloat(document.getElementById('set-lat').value), lng:parseFloat(document.getElementById('set-lng').value), radius:parseInt(document.getElementById('set-radius').value) };
             await fetch(scriptURL,{method:'POST', body:JSON.stringify(p)}); 
-            alert("บันทึกพิกัดแล้ว"); officeLoc = {lat:p.lat, lng:p.lng, radius:p.radius};
+            alert("บันทึกพิกัดสถานที่เรียบร้อยแล้ว"); officeLoc = {lat:p.lat, lng:p.lng, radius:p.radius};
             toggleModal('modal-gps', false);
         }
 
