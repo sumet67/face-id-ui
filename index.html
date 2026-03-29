@@ -41,9 +41,11 @@
         th { color: var(--primary); background: rgba(255,255,255,0.02); }
 
         .admin-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; font-size: 22px; z-index: 500; }
-        
-        /* สไตล์ไอคอนความสำเร็จ/แจ้งเตือน */
-        .status-icon { font-size: 60px; margin-bottom: 15px; }
+
+        /* Admin Password Modal Style */
+        #admin-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:2000; align-items:center; justify-content:center; }
+        .modal-content { background:var(--card); width:320px; padding:35px; border-radius:30px; border:1px solid rgba(255,255,255,0.15); text-align:center; box-shadow: 0 25px 50px rgba(0,0,0,0.6); transform: scale(0.9); transition: 0.3s; }
+        .modal-active .modal-content { transform: scale(1); }
     </style>
 </head>
 <body>
@@ -75,15 +77,24 @@
             </div>
 
             <div class="phase" id="phase4">
-                <div id="res-icon" class="status-icon">⏳</div>
-                <p id="res-msg" style="text-align:center; padding:10px; font-size: 1.1rem; font-weight: bold;"></p>
-                <p id="res-sub" style="text-align:center; color: #aaa; margin-bottom: 20px;"></p>
+                <div id="res-icon" style="font-size:60px; margin-bottom:15px;">⏳</div>
+                <p id="res-msg" style="text-align:center; padding:10px; font-weight: 600; font-size: 1.1rem;"></p>
                 <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
             </div>
         </div>
     </div>
 
-    <div class="admin-float" onclick="openAdmin()">📊</div>
+    <div class="admin-float" onclick="toggleAdminModal(true)">📊</div>
+
+    <div id="admin-modal">
+        <div class="modal-content">
+            <div style="font-size:40px; margin-bottom:10px;">🔒</div>
+            <h3 style="color:var(--primary); margin-bottom:20px;">สิทธิ์ผู้ดูแลระบบ</h3>
+            <input type="password" id="admin-pass" placeholder="รหัสผ่าน" style="text-align:center; letter-spacing: 5px;">
+            <button class="btn-main" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
+            <button class="btn-sub" onclick="toggleAdminModal(false)">ยกเลิก</button>
+        </div>
+    </div>
 
     <div id="admin-panel">
         <div style="display:flex; height:100%;">
@@ -121,8 +132,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // ⚠️ แก้ไข URL นี้ให้เป็น URL ล่าสุดจากการ Deploy (Anyone)
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzLaloHOxSs3Hdc_l_ualOEv-APDGO4k0YvnNiep70V7evjwD1FaZEdIYPFA5jgxobILg/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyQVq6OkO9D4urApei3SIBFJWJyWFGf34KU7c53Nf9CIozLtxIKzWxY20PWNPP9LMXXVg/exec'; 
         let currentDesc = null;
         let detectInt = null;
 
@@ -182,42 +192,59 @@
             if(n==1 || n==3) startCam(n);
         }
 
-async function doAction(act) {
-    const payload = {
-        action: act,
-        faceDescriptor: currentDesc,
-        firstName: document.getElementById('reg-f').value,
-        lastName: document.getElementById('reg-l').value,
-        position: document.getElementById('reg-p').value
-    };
+        async function doAction(act) {
+            const payload = {
+                action: act,
+                faceDescriptor: currentDesc,
+                firstName: document.getElementById('reg-f').value,
+                lastName: document.getElementById('reg-l').value,
+                position: document.getElementById('reg-p').value
+            };
+            
+            setPhase(4);
+            document.getElementById('res-icon').innerText = "⏳";
+            document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
 
-    // แสดงหน้าโหลดข้อมูล
-    document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-    setPhase(4);
+            try {
+                const response = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) });
+                const resultText = await response.text();
+                
+                document.getElementById('res-msg').innerText = resultText;
+                
+                if (resultText.includes("สำเร็จ")) {
+                    document.getElementById('res-icon').innerText = "✅";
+                } else if (resultText.includes("แล้ว") || resultText.includes("นอกเวลา")) {
+                    document.getElementById('res-icon').innerText = "⚠️";
+                } else {
+                    document.getElementById('res-icon').innerText = "❌";
+                }
+            } catch (e) {
+                document.getElementById('res-msg').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ";
+            }
+        }
 
-    try {
-        // 1. นำ mode: 'no-cors' ออก (สำคัญมาก!) เพื่อให้ Browser ยอมให้อ่านคำตอบจาก Server
-        const response = await fetch(scriptURL, { 
-            method: 'POST', 
-            body: JSON.stringify(payload) 
-        });
+        function toggleAdminModal(show) {
+            const modal = document.getElementById('admin-modal');
+            if (show) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('modal-active'), 10);
+                document.getElementById('admin-pass').focus();
+            } else {
+                modal.classList.remove('modal-active');
+                setTimeout(() => modal.style.display = 'none', 300);
+                document.getElementById('admin-pass').value = '';
+            }
+        }
 
-        // 2. อ่านข้อความที่ส่งมาจาก ContentService.createTextOutput ใน Google Script
-        const resultText = await response.text();
-
-        // 3. แสดงข้อความแจ้งเตือนที่ส่งมาจาก Code.gs บนหน้าจอ
-        document.getElementById('res-msg').innerText = resultText;
-
-    } catch (e) {
-        document.getElementById('res-msg').innerText = "การเชื่อมต่อขัดข้อง: " + e;
-    }
-}
-
-        function openAdmin() {
-            if (prompt("รหัสผ่าน:") === "1234") {
+        function checkAdminPass() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === "1234") {
+                toggleAdminModal(false);
                 document.getElementById('admin-panel').style.display = 'block';
                 document.getElementById('app-view').style.display = 'none';
                 fetchData();
+            } else {
+                alert("รหัสผ่านไม่ถูกต้อง!");
             }
         }
 
@@ -239,27 +266,16 @@ async function doAction(act) {
                 const logRes = await fetch(scriptURL + "?action=getLogs");
                 const logs = await logRes.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]} ${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-
+                
                 const empRes = await fetch(scriptURL + "?action=getEmployees");
                 const emps = await empRes.json();
                 document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
-            } catch (e) { console.log("Fetch Error", e); }
+            } catch (e) { console.log(e); }
         }
 
-        function exportExcel(id) { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById(id)), "Attendance_Report.xlsx"); }
+        function exportExcel(id) { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById(id)), "Report.xlsx"); }
 
         initAI();
     </script>
-<div class="admin-float" onclick="toggleAdminModal(true)">📊</div>
-
-<div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:2000; align-items:center; justify-content:center;">
-    <div style="background:var(--card); width:320px; padding:30px; border-radius:25px; border:1px solid rgba(255,255,255,0.1); text-align:center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: 0.3s;" id="modal-content">
-        <div style="font-size:40px; margin-bottom:15px;">🔒</div>
-        <h3 style="color:var(--primary); margin-bottom:20px;">รหัสผ่านผู้ดูแล</h3>
-        <input type="password" id="admin-pass" placeholder="กรอกรหัสผ่าน..." style="text-align:center; letter-spacing: 5px; font-size:1.2rem; margin-bottom:15px;">
-        <button class="btn-main" onclick="checkAdminPass()" style="margin-top:0;">เข้าสู่ระบบ</button>
-        <button class="btn-sub" onclick="toggleAdminModal(false)">ยกเลิก</button>
-    </div>
-</div>
 </body>
 </html>
