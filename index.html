@@ -24,7 +24,7 @@
 
         /* การตั้งค่าพิมพ์ PDF */
         @media print {
-            .sidebar, .btn-group-export, .admin-float, .live-status, .btn-action { display: none !important; }
+            .sidebar, .btn-group-export, .admin-float, .live-status, .btn-action, .sync-indicator { display: none !important; }
             .main-content { padding: 0 !important; width: 100% !important; }
             body { background: white !important; color: black !important; }
             table { width: 100% !important; border-collapse: collapse; color: black !important; }
@@ -44,7 +44,6 @@
         .laser { position: absolute; width: 100%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
-        /* ข้อความสถานะสแกน */
         .scan-status { font-size: 0.9rem; margin-bottom: 15px; font-weight: 300; transition: 0.3s; }
 
         input, select { 
@@ -62,13 +61,11 @@
         .btn-main:disabled { background: #333; color: #777; cursor: not-allowed; opacity: 0.5; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
-        /* ปุ่มจัดการสวยๆ */
         .btn-edit { background: rgba(0, 242, 254, 0.1); border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .btn-edit:hover { background: var(--primary); color: #000; }
         .btn-del { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--error); color: var(--error); padding: 5px 12px; border-radius: 8px; cursor: pointer; margin-left: 5px; }
         .btn-del:hover { background: var(--error); color: #fff; }
 
-        /* Export Buttons */
         .btn-excel { background: #2ecc71; color: white; padding: 8px 15px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; }
         .btn-pdf { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; margin-left: 8px; }
 
@@ -84,6 +81,21 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; }
+
+        /* --- เพิ่มเติม: Real-time Sync Indicator --- */
+        .sync-indicator {
+            display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--success);
+            background: rgba(0, 255, 136, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        .pulse-dot {
+            width: 8px; height: 8px; background: var(--success); border-radius: 50%;
+            box-shadow: 0 0 10px var(--success); animation: pulse-green 1.5s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
     </style>
 </head>
 <body>
@@ -156,7 +168,6 @@
 
     <div id="modal-gps" class="modal-overlay">
             <div class="modal-box" style="width: 420px;"> <h3>📍 ตั้งค่าพิกัดสถานที่</h3>
-                
                 <div style="text-align: left; background: rgba(0,242,254,0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--border);">
                     <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 5px;"><strong>💡 วิธีการตั้งค่า:</strong></p>
                     <ul style="font-size: 0.8rem; color: #ccc; padding-left: 20px;">
@@ -165,24 +176,19 @@
                         <li>หากอยู่ ณ สถานที่จริง สามารถกดปุ่มด้านล่างเพื่อดึงพิกัดอัตโนมัติได้</li>
                     </ul>
                 </div>
-    
                 <label>Latitude (ละติจูด)</label>
                 <input type="number" id="set-lat" step="any" placeholder="ตัวอย่าง: 13.7563">
-                
                 <label>Longitude (ลองจิจูด)</label>
                 <input type="number" id="set-lng" step="any" placeholder="ตัวอย่าง: 100.5018">
-                
                 <label>Radius (รัศมีเป็นเมตร)</label>
                 <input type="number" id="set-radius" placeholder="ระบุตัวเลข เช่น 100">
-    
                 <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin: 10px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="getCurrentLoc()">
                     🎯 <span>ใช้พิกัดปัจจุบันจากมือถือของคุณ</span>
                 </div>
-    
                 <button class="btn-main" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
                 <button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button>
             </div>
-        </div>
+    </div>
 
     <div id="admin-panel">
         <div style="display:flex; height:100%;">
@@ -196,7 +202,13 @@
             <div class="main-content">
                 <div id="tab-report" class="tab-content">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>รายงานเข้า-ออกงาน</h3>
+                        <div>
+                            <h3>รายงานเข้า-ออกงาน</h3>
+                            <div class="sync-indicator" id="sync-status" style="margin-top: 8px;">
+                                <div class="pulse-dot"></div>
+                                <span id="sync-text">ระบบกำลังทำงานแบบเรียลไทม์...</span>
+                            </div>
+                        </div>
                         <div>
                             <button class="btn-excel" onclick="exportToExcel()">📊 Excel</button>
                             <button class="btn-pdf" onclick="window.print()">📄 PDF</button>
@@ -223,7 +235,7 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxzJcJEEWW-vtytGQfO0z5paz8OifXw4toViTRsO_HYfzyUCPChpMXbFKP_U4VVvMIGag/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzt4Invvt11wDdbdZV-XTqz3i53BX15w4z5hfuPpA4QT6v5WI6XHPJ_So8qQe3x7iMrZg/exec'; 
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
@@ -288,11 +300,14 @@
             if(document.getElementById('admin-pass').value === "1234") {
                 toggleModal('modal-pass', false); document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none'; fetchData();
-                syncInt = setInterval(fetchData, 5000); // ดึงข้อมูลใหม่ทุก 5 วินาที
+                syncInt = setInterval(fetchData, 5000); 
             } else alert("รหัสผ่านไม่ถูกต้อง");
         }
 
         async function fetchData() {
+            const syncText = document.getElementById('sync-text');
+            if(syncText) syncText.innerText = "กำลังอัปเดตข้อมูลล่าสุด..."; 
+            
             try {
                 const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
@@ -302,7 +317,14 @@
                     <button class="btn-edit" onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')">แก้ไข</button>
                     <button class="btn-del" onclick="handleDel('${r[0]}')">ลบ</button>
                 </td></tr>`).join('');
-            } catch(e) {}
+
+                if(syncText) {
+                    const now = new Date();
+                    syncText.innerText = `อัปเดตล่าสุดเมื่อ ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+                }
+            } catch(e) {
+                if(syncText) syncText.innerText = "⚠️ การอัปเดตขัดข้อง";
+            }
         }
 
         function exportToExcel() {
