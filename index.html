@@ -182,49 +182,36 @@
             if(n==1 || n==3) startCam(n);
         }
 
-        async function doAction(act) {
-            const payload = {
-                action: act,
-                faceDescriptor: currentDesc,
-                firstName: document.getElementById('reg-f').value,
-                lastName: document.getElementById('reg-l').value,
-                position: document.getElementById('reg-p').value
-            };
-            
-            setPhase(4);
-            document.getElementById('res-icon').innerText = "⏳";
-            document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-            document.getElementById('res-sub').innerText = "กรุณารอสักครู่";
+async function doAction(act) {
+    const payload = {
+        action: act,
+        faceDescriptor: currentDesc,
+        firstName: document.getElementById('reg-f').value,
+        lastName: document.getElementById('reg-l').value,
+        position: document.getElementById('reg-p').value
+    };
 
-            try {
-                // 🚀 เปลี่ยนเป็นโหมดที่จะรับค่า Response จาก Apps Script ได้
-                const response = await fetch(scriptURL, { 
-                    method: 'POST', 
-                    body: JSON.stringify(payload) 
-                });
-                
-                const resultText = await response.text();
-                
-                // ตรวจสอบข้อความแจ้งเตือนจาก Server (Code.gs)
-                if (resultText.includes("สำเร็จ")) {
-                    document.getElementById('res-icon').innerText = "✅";
-                    document.getElementById('res-icon').style.color = "#00ff88";
-                } else if (resultText.includes("แล้ว") || resultText.includes("นอกเวลา")) {
-                    document.getElementById('res-icon').innerText = "⚠️";
-                    document.getElementById('res-icon').style.color = "#ffcc00";
-                } else {
-                    document.getElementById('res-icon').innerText = "❌";
-                    document.getElementById('res-icon').style.color = "#ff4d4d";
-                }
-                
-                document.getElementById('res-msg').innerText = resultText;
-                document.getElementById('res-sub').innerText = new Date().toLocaleTimeString('th-TH');
+    // แสดงหน้าโหลดข้อมูล
+    document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
+    setPhase(4);
 
-            } catch (e) {
-                document.getElementById('res-icon').innerText = "❌";
-                document.getElementById('res-msg').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ";
-            }
-        }
+    try {
+        // 1. นำ mode: 'no-cors' ออก (สำคัญมาก!) เพื่อให้ Browser ยอมให้อ่านคำตอบจาก Server
+        const response = await fetch(scriptURL, { 
+            method: 'POST', 
+            body: JSON.stringify(payload) 
+        });
+
+        // 2. อ่านข้อความที่ส่งมาจาก ContentService.createTextOutput ใน Google Script
+        const resultText = await response.text();
+
+        // 3. แสดงข้อความแจ้งเตือนที่ส่งมาจาก Code.gs บนหน้าจอ
+        document.getElementById('res-msg').innerText = resultText;
+
+    } catch (e) {
+        document.getElementById('res-msg').innerText = "การเชื่อมต่อขัดข้อง: " + e;
+    }
+}
 
         function openAdmin() {
             if (prompt("รหัสผ่าน:") === "1234") {
