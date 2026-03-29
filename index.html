@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID Premium Real-time</title>
+    <title>AI FaceID Premium Full-System</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
@@ -12,12 +12,12 @@
             --card: rgba(255, 255, 255, 0.05);
             --glass: rgba(15, 23, 42, 0.9);
             --border: rgba(0, 242, 254, 0.3);
-            --success: #00ff88; --error: #ff4d4d; --warning: #ffcc00;
+            --success: #00ff88; --error: #ff4d4d;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; }
 
-        /* --- UI ส่วนหลัก --- */
+        /* App View */
         .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .app-container { width: 350px; height: 620px; background: var(--card); backdrop-filter: blur(25px); border-radius: 40px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; }
         .phase { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
@@ -29,31 +29,22 @@
         .laser { position: absolute; width: 100%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
-        /* Inputs & Buttons */
+        /* UI */
         input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; outline: none; }
-        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 8px 15px rgba(0,242,254,0.2); }
-        .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
-        /* --- TOAST & NOTIFICATION --- */
+        /* Custom Dialogs & Modals */
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,5,15,0.85); backdrop-filter:blur(15px); z-index:5000; align-items:center; justify-content:center; }
+        .modal-box { background: var(--glass); width:380px; padding:35px; border-radius:35px; border:1px solid var(--border); text-align:center; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes modalPop { from { opacity: 0; transform: scale(0.85) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        label { display: block; text-align: left; font-size: 0.75rem; color: var(--primary); margin: 0 0 5px 6px; font-weight: 600; }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { background: var(--glass); border: 1px solid var(--border); backdrop-filter: blur(15px); color: white; padding: 16px 25px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); transform: translateX(120%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.26, 1.55); border-left: 5px solid var(--primary); }
+        .toast { background: var(--glass); border: 1px solid var(--border); padding: 16px 25px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); transform: translateX(120%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.26, 1.55); border-left: 5px solid var(--primary); }
         .toast.show { transform: translateX(0); }
 
-        /* --- CUSTOM BEAUTIFUL DIALOG (แทนที่ Alert/Confirm เดิม) --- */
-        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,5,15,0.85); backdrop-filter:blur(15px); z-index:5000; align-items:center; justify-content:center; }
-        .modal-box { background: var(--glass); width:360px; padding:35px; border-radius:35px; border:1px solid var(--border); text-align:center; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes modalPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        
-        .modal-icon { font-size: 50px; margin-bottom: 15px; }
-        .modal-box h3 { color: var(--primary); margin-bottom: 15px; font-size: 1.4rem; }
-        .modal-box p { color: #ccc; margin-bottom: 25px; line-height: 1.5; }
-        
-        .btn-dialog { padding: 12px 25px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 100px; }
-        .btn-confirm { background: var(--primary); color: #000; margin-right: 10px; }
-        .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
-
-        /* Admin Layout & Real-time Info */
+        /* Admin UI */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 30px; }
         .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; transition: 0.3s; }
@@ -62,12 +53,10 @@
         .table-container { background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        
-        .sync-indicator { font-size: 0.75rem; color: var(--success); display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
-        .pulse-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
-        
-        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; box-shadow: 0 10px 20px rgba(0,242,254,0.3); }
+        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; }
+        .sync-info { font-size: 0.7rem; color: var(--success); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .pulse { width: 7px; height: 7px; background: var(--success); border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -76,25 +65,43 @@
 
     <div id="custom-dialog" class="modal-overlay">
         <div class="modal-box">
-            <div id="dialog-icon" class="modal-icon">✅</div>
+            <div id="dialog-icon" style="font-size:50px; margin-bottom:15px;">✅</div>
             <h3 id="dialog-title">แจ้งเตือน</h3>
-            <p id="dialog-msg">บันทึกข้อมูลสำเร็จ</p>
-            <div id="dialog-actions">
-                <button id="btn-dialog-ok" class="btn-dialog btn-confirm">ตกลง</button>
-                <button id="btn-dialog-cancel" class="btn-dialog btn-cancel" style="display:none;">ยกเลิก</button>
+            <p id="dialog-msg"></p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button id="btn-dialog-ok" class="btn-main" style="width:120px; margin:0">ตกลง</button>
+                <button id="btn-dialog-cancel" class="btn-sub" style="color:#ff4d4d; display:none;">ยกเลิก</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-edit" class="modal-overlay">
+        <div class="modal-box">
+            <h3>📝 แก้ไขข้อมูลพนักงาน</h3>
+            <input type="hidden" id="edit-id">
+            <label>ชื่อจริง</label><input type="text" id="edit-f">
+            <label>นามสกุล</label><input type="text" id="edit-l">
+            <label>ตำแหน่ง</label>
+            <select id="edit-p">
+                <option value="ผู้บริหาร">ผู้บริหาร</option>
+                <option value="ครู">ครู</option>
+                <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
+            </select>
+            <button class="btn-main" onclick="submitEdit()">บันทึกการแก้ไข</button>
+            <button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button>
         </div>
     </div>
 
     <div class="app-view" id="app-view">
         <div class="app-container">
             <div class="phase active" id="phase1">
-                <h2 style="color:var(--primary); letter-spacing: 2px;">AI FACE ID</h2>
+                <h2 style="color:var(--primary);">AI FACE ID</h2>
                 <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted playsinline></video><div class="laser"></div></div>
-                <p id="stat1" style="color:#aaa;">กำลังค้นหาใบหน้า...</p>
+                <p id="stat1">กำลังค้นหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
                 <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงาน</button>
             </div>
+            
             <div class="phase" id="phase2">
                 <h3>ข้อมูลพนักงาน</h3>
                 <input type="text" id="reg-f" placeholder="ชื่อจริง">
@@ -103,25 +110,26 @@
                 <button class="btn-main" onclick="setPhase(3)">ต่อไป: สแกนใบหน้า</button>
                 <button class="btn-sub" onclick="setPhase(1)">ยกเลิก</button>
             </div>
+
             <div class="phase" id="phase3">
                 <h3>บันทึกใบหน้า</h3>
                 <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video><div class="laser"></div></div>
-                <p id="stat3">กรุณานิ่งสักครู่...</p>
                 <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันลงทะเบียน</button>
             </div>
+
             <div class="phase" id="phase4">
                 <div id="res-icon" style="font-size:70px; margin-bottom:20px;">⏳</div>
-                <p id="res-msg" style="text-align:center; white-space: pre-line;"></p>
-                <button class="btn-main" style="margin-top:20px;" onclick="setPhase(1)">ตกลง</button>
+                <p id="res-msg"></p>
+                <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
             </div>
         </div>
     </div>
 
-    <div class="admin-float" onclick="openLogin()">📊</div>
+    <div class="admin-float" onclick="toggleModal('modal-login', true)">📊</div>
 
     <div id="modal-login" class="modal-overlay">
         <div class="modal-box">
-            <h3>🔒 แผงควบคุม</h3>
+            <h3>🔒 Admin Login</h3>
             <input type="password" id="admin-pass" placeholder="••••" style="text-align:center; font-size:2rem; letter-spacing:10px;">
             <button class="btn-main" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
             <button class="btn-sub" onclick="toggleModal('modal-login', false)">ปิด</button>
@@ -134,11 +142,10 @@
                 <h2 style="color:var(--primary); margin-bottom:30px;">ADMIN</h2>
                 <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานวันนี้</div>
                 <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
-                <div class="menu-item" onclick="openGPSModal()">📍 ตั้งค่า GPS</div>
                 <div class="menu-item" style="margin-top:auto; color:#ff4d4d;" onclick="closeAdmin()">🚪 ออกจากระบบ</div>
             </div>
             <div class="main-content">
-                <div class="sync-indicator"><div class="pulse-dot"></div> ข้อมูลอัปเดตแบบ Real-time ทุก 5 วินาที</div>
+                <div class="sync-info"><div class="pulse"></div> Real-time Update Active</div>
                 <div id="tab-report" class="tab-content">
                     <h3>รายงานประจำวัน</h3>
                     <div class="table-container"><table><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
@@ -153,43 +160,26 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxzJcJEEWW-vtytGQfO0z5paz8OifXw4toViTRsO_HYfzyUCPChpMXbFKP_U4VVvMIGag/exec'; 
-        let currentDesc = null, detectInt = null, syncInt = null, officeLoc = {lat:0, lng:0, radius:100};
+        let currentDesc = null, syncInt = null, detectInt = null;
 
-        // --- ระบบแจ้งเตือนใหม่ (ไร้ Alert 100%) ---
-        function myAlert(title, msg, icon = '✅') {
-            return new Promise(resolve => {
-                document.getElementById('dialog-icon').innerText = icon;
-                document.getElementById('dialog-title').innerText = title;
-                document.getElementById('dialog-msg').innerText = msg;
-                document.getElementById('btn-dialog-cancel').style.display = 'none';
-                document.getElementById('custom-dialog').style.display = 'flex';
-                document.getElementById('btn-dialog-ok').onclick = () => {
-                    document.getElementById('custom-dialog').style.display = 'none';
-                    resolve(true);
-                };
-            });
+        function showToast(msg) {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div'); t.className = 'toast';
+            t.innerHTML = `<span>✨</span> ${msg}`; c.appendChild(t);
+            setTimeout(()=>t.classList.add('show'), 100);
+            setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(), 500);}, 3000);
         }
 
         function myConfirm(title, msg) {
-            return new Promise(resolve => {
+            return new Promise(res => {
                 document.getElementById('dialog-icon').innerText = '⚠️';
                 document.getElementById('dialog-title').innerText = title;
                 document.getElementById('dialog-msg').innerText = msg;
-                document.getElementById('btn-dialog-cancel').style.display = 'inline-block';
-                document.getElementById('custom-dialog').style.display = 'flex';
-                document.getElementById('btn-dialog-ok').onclick = () => { document.getElementById('custom-dialog').style.display = 'none'; resolve(true); };
-                document.getElementById('btn-dialog-cancel').onclick = () => { document.getElementById('custom-dialog').style.display = 'none'; resolve(false); };
+                document.getElementById('btn-dialog-cancel').style.display = 'block';
+                toggleModal('custom-dialog', true);
+                document.getElementById('btn-dialog-ok').onclick = () => { toggleModal('custom-dialog', false); res(true); };
+                document.getElementById('btn-dialog-cancel').onclick = () => { toggleModal('custom-dialog', false); res(false); };
             });
-        }
-
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<span>✨</span> ${msg}`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
         }
 
         async function initAI() {
@@ -197,31 +187,23 @@
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
-            const res = await fetch(scriptURL + "?action=getSettings");
-            officeLoc = await res.json();
             startCam(1);
         }
 
         async function startCam(p) {
             const vid = document.getElementById('vid'+p), wrap = document.getElementById('wrapper'+p);
-            const btn = document.getElementById('btn'+p), stat = document.getElementById('stat'+p);
+            const btn = document.getElementById('btn'+p);
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             vid.srcObject = stream;
             vid.onplay = () => {
-                const canvas = faceapi.createCanvasFromMedia(vid);
-                wrap.append(canvas);
+                const canvas = faceapi.createCanvasFromMedia(vid); wrap.append(canvas);
                 faceapi.matchDimensions(canvas, { width: vid.offsetWidth, height: vid.offsetHeight });
                 detectInt = setInterval(async () => {
                     const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
                     canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
                     if(det) {
-                        currentDesc = Array.from(det.descriptor);
-                        wrap.classList.add('detected'); btn.disabled = false;
-                        stat.innerText = "พบใบหน้า สแกนได้!";
-                    } else {
-                        wrap.classList.remove('detected'); btn.disabled = true;
-                        stat.innerText = "ค้นหาใบหน้า...";
-                    }
+                        currentDesc = Array.from(det.descriptor); wrap.classList.add('detected'); btn.disabled = false;
+                    } else { wrap.classList.remove('detected'); btn.disabled = true; }
                 }, 400);
             };
         }
@@ -236,52 +218,59 @@
         }
 
         async function doAction(act) {
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const p = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value };
-                setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-                const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
-                const txt = await res.text();
-                document.getElementById('res-msg').innerText = txt;
-                document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
-            });
+            const p = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value };
+            setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
+            const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
+            const txt = await res.text();
+            document.getElementById('res-msg').innerText = txt;
+            document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
         }
 
         function toggleModal(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; }
-        function openLogin() { toggleModal('modal-login', true); }
 
         async function checkAdminPass() {
             if(document.getElementById('admin-pass').value === "1234") {
                 toggleModal('modal-login', false); document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none';
-                fetchData();
-                syncInt = setInterval(fetchData, 5000); // Real-time Sync ทุก 5 วินาที
-                showToast("ยินดีต้อนรับ Admin");
-            } else myAlert("ผิดพลาด", "รหัสผ่านไม่ถูกต้อง", "❌");
+                fetchData(); syncInt = setInterval(fetchData, 5000);
+                showToast("เข้าสู่ระบบแอดมินสำเร็จ");
+            } else showToast("รหัสผ่านไม่ถูกต้อง");
         }
 
+        // --- ฟังก์ชันดึงข้อมูลพนักงาน (คืนปุ่มแก้ไขกลับมาแล้ว!) ---
         async function fetchData() {
             try {
                 const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
+                
                 const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
-                document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
-                    <button onclick="handleDel('${r[0]}','${r[1]}')" style="background:none; border:1px solid var(--error); color:var(--error); padding:4px 8px; border-radius:8px; cursor:pointer;">ลบ</button>
-                </td></tr>`).join('');
+                document.getElementById('empBody').innerHTML = emps.map(r => `<tr>
+                    <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td>
+                    <td>
+                        <button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 10px; border-radius:8px; cursor:pointer;">แก้ไข</button>
+                        <button onclick="handleDel('${r[0]}','${r[1]}')" style="background:none; border:1px solid var(--error); color:var(--error); padding:4px 10px; border-radius:8px; cursor:pointer; margin-left:5px">ลบ</button>
+                    </td>
+                </tr>`).join('');
             } catch(e) {}
         }
 
+        function openEdit(id,f,l,p) { 
+            document.getElementById('edit-id').value=id; document.getElementById('edit-f').value=f;
+            document.getElementById('edit-l').value=l; document.getElementById('edit-p').value=p;
+            toggleModal('modal-edit', true); 
+        }
+
+        async function submitEdit() {
+            const p = { action:"editEmployee", id:document.getElementById('edit-id').value, firstName:document.getElementById('edit-f').value, lastName:document.getElementById('edit-l').value, position:document.getElementById('edit-p').value };
+            await fetch(scriptURL, {method:'POST', body:JSON.stringify(p)});
+            toggleModal('modal-edit', false); fetchData(); showToast("อัปเดตข้อมูลพนักงานแล้ว");
+        }
+
         async function handleDel(id, name) {
-            const ok = await myConfirm("ยืนยันการลบ", `ต้องการลบคุณ ${name} หรือไม่?`);
-            if(ok) {
+            if(await myConfirm("ยืนยัน", `ต้องการลบคุณ ${name}?`)) {
                 await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})});
                 fetchData(); showToast("ลบข้อมูลสำเร็จ");
             }
-        }
-
-        async function saveSettings() {
-            const p = { action:"saveSettings", lat:parseFloat(document.getElementById('set-lat').value), lng:parseFloat(document.getElementById('set-lng').value), radius:parseInt(document.getElementById('set-radius').value) };
-            await fetch(scriptURL,{method:'POST', body:JSON.stringify(p)}); 
-            myAlert("สำเร็จ", "บันทึกพิกัดสถานที่เรียบร้อยแล้ว");
         }
 
         function switchTab(id) { 
