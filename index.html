@@ -250,5 +250,16 @@ async function doAction(act) {
 
         initAI();
     </script>
+<div class="admin-float" onclick="toggleAdminModal(true)">📊</div>
+
+<div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:var(--card); width:320px; padding:30px; border-radius:25px; border:1px solid rgba(255,255,255,0.1); text-align:center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: 0.3s;" id="modal-content">
+        <div style="font-size:40px; margin-bottom:15px;">🔒</div>
+        <h3 style="color:var(--primary); margin-bottom:20px;">รหัสผ่านผู้ดูแล</h3>
+        <input type="password" id="admin-pass" placeholder="กรอกรหัสผ่าน..." style="text-align:center; letter-spacing: 5px; font-size:1.2rem; margin-bottom:15px;">
+        <button class="btn-main" onclick="checkAdminPass()" style="margin-top:0;">เข้าสู่ระบบ</button>
+        <button class="btn-sub" onclick="toggleAdminModal(false)">ยกเลิก</button>
+    </div>
+</div>
 </body>
 </html>
