@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID System</title>
+    <title>AI FaceID Geofence</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
@@ -11,12 +11,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; }
 
-        /* Main UI */
         .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-        .app-container { width: 350px; height: 620px; background: var(--card); backdrop-filter: blur(20px); border-radius: 35px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .app-container { width: 350px; height: 620px; background: var(--card); backdrop-filter: blur(20px); border-radius: 35px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); position: relative; }
 
-        .phase { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-        .phase.active { display: flex; }
+        .phase { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+        .phase.active { display: flex; justify-content: center; }
         
         .scanner-view { width: 100%; height: 260px; border-radius: 20px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); margin: 20px 0; }
         .scanner-view.detected { border-color: #00ff88; box-shadow: 0 0 15px rgba(0,255,136,0.3); }
@@ -26,12 +25,11 @@
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         
         input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #333; background: rgba(0,0,0,0.5); color: #fff; outline: none; }
-        input:focus { border-color: var(--primary); }
         .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-main:disabled { background: #444; color: #888; cursor: not-allowed; }
+        .btn-main:disabled { background: #444; color: #888; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
-        /* Admin Panel */
+        /* Admin UI */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 240px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 25px; }
         .menu-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; color: #ccc; }
@@ -40,13 +38,11 @@
         .table-container { background: var(--card); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { color: var(--primary); background: rgba(255,255,255,0.02); }
 
-        /* Floating Button & Modals */
-        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; font-size: 22px; z-index: 500; }
+        /* Modals */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:2000; align-items:center; justify-content:center; }
-        .modal-box { background:var(--card); width:340px; padding:30px; border-radius:30px; border:1px solid rgba(255,255,255,0.15); text-align:center; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
-        .modal-box label { display:block; text-align:left; font-size:0.75rem; color:var(--primary); margin: 10px 0 5px 5px; }
+        .modal-box { background:var(--card); width:340px; padding:30px; border-radius:30px; border:1px solid rgba(255,255,255,0.15); text-align:center; }
+        .admin-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; z-index: 500; }
     </style>
 </head>
 <body>
@@ -58,7 +54,7 @@
                 <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted playsinline></video><div class="laser"></div></div>
                 <p id="stat1" style="font-size:0.85rem;">กำลังค้นหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
-                <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
+                <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงาน</button>
             </div>
             <div class="phase" id="phase2">
                 <h2 style="color:var(--primary); margin-bottom:20px;">ข้อมูลพนักงาน</h2>
@@ -66,17 +62,17 @@
                 <input type="text" id="reg-l" placeholder="นามสกุล">
                 <input type="text" id="reg-p" placeholder="ตำแหน่ง">
                 <button class="btn-main" onclick="setPhase(3)">ถัดไป: สแกนหน้า</button>
-                <button class="btn-sub" onclick="setPhase(1)">กลับหน้าแรก</button>
+                <button class="btn-sub" onclick="setPhase(1)">กลับ</button>
             </div>
             <div class="phase" id="phase3">
                 <h2 style="color:var(--primary);">บันทึกใบหน้า</h2>
                 <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video><div class="laser"></div></div>
                 <p id="stat3">กรุณานิ่งสักครู่...</p>
-                <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันการลงทะเบียน</button>
+                <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันลงทะเบียน</button>
             </div>
             <div class="phase" id="phase4">
                 <div id="res-icon" style="font-size:60px; margin-bottom:15px;">⏳</div>
-                <p id="res-msg" style="text-align:center; padding:10px; font-weight: 600;"></p>
+                <p id="res-msg" style="text-align:center; white-space: pre-line;"></p>
                 <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
             </div>
         </div>
@@ -86,9 +82,8 @@
 
     <div id="modal-pass" class="modal-overlay">
         <div class="modal-box">
-            <div style="font-size:40px; margin-bottom:10px;">🔒</div>
-            <h3 style="color:var(--primary); margin-bottom:20px;">รหัสผ่านผู้ดูแล</h3>
-            <input type="password" id="admin-pass" placeholder="••••" style="text-align:center; font-size:1.5rem; letter-spacing:8px;">
+            <h3>🔒 แอดมิน</h3>
+            <input type="password" id="admin-pass" placeholder="รหัสผ่าน" style="text-align:center; margin-top:20px;">
             <button class="btn-main" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
             <button class="btn-sub" onclick="toggleModal('modal-pass', false)">ยกเลิก</button>
         </div>
@@ -96,12 +91,12 @@
 
     <div id="modal-edit" class="modal-overlay">
         <div class="modal-box">
-            <h3 style="color:var(--primary); margin-bottom:15px;">📝 แก้ไขข้อมูล</h3>
+            <h3>📝 แก้ไขข้อมูล</h3>
             <input type="hidden" id="edit-id">
-            <label>ชื่อจริง</label><input type="text" id="edit-f">
-            <label>นามสกุล</label><input type="text" id="edit-l">
-            <label>ตำแหน่ง</label><input type="text" id="edit-p">
-            <button class="btn-main" onclick="submitEdit()">บันทึกข้อมูล</button>
+            <input type="text" id="edit-f" placeholder="ชื่อ">
+            <input type="text" id="edit-l" placeholder="นามสกุล">
+            <input type="text" id="edit-p" placeholder="ตำแหน่ง">
+            <button class="btn-main" onclick="submitEdit()">บันทึก</button>
             <button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button>
         </div>
     </div>
@@ -109,152 +104,143 @@
     <div id="admin-panel">
         <div style="display:flex; height:100%;">
             <div class="sidebar">
-                <h2 style="color:var(--primary); margin-bottom:30px;">DASHBOARD</h2>
-                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานลงเวลา</div>
-                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
-                <div class="menu-item" style="margin-top:auto; color: #ff4d4d;" onclick="closeAdmin()">🚪 ออกจากระบบ</div>
+                <h2>Admin</h2>
+                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงาน</div>
+                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 พนักงาน</div>
+                <div class="menu-item" id="m-setup" onclick="switchTab('tab-setup')">⚙️ ตั้งค่า GPS</div>
+                <div class="menu-item" style="margin-top:auto; color:#ff4d4d;" onclick="closeAdmin()">🚪 ออก</div>
             </div>
             <div class="main-content">
                 <div id="tab-report" class="tab-content">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>รายงานวันนี้</h3>
-                        <button onclick="exportExcel()" style="padding:8px 15px; background:#00ff88; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Excel</button>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ-นามสกุล</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead>
-                            <tbody id="logBody"></tbody>
-                        </table>
-                    </div>
+                    <h3>รายงานลงเวลา</h3>
+                    <div class="table-container"><table><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
                 </div>
                 <div id="tab-emp" class="tab-content" style="display:none;">
-                    <h3>จัดการพนักงาน</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th><th>จัดการ</th></tr></thead>
-                            <tbody id="empBody"></tbody>
-                        </table>
+                    <h3>รายชื่อพนักงาน</h3>
+                    <div class="table-container"><table><thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th><th>จัดการ</th></tr></thead><tbody id="empBody"></tbody></table></div>
+                </div>
+                <div id="tab-setup" class="tab-content" style="display:none;">
+                    <h3>📍 ตั้งค่าสถานที่</h3>
+                    <div class="table-container" style="padding:20px;">
+                        <input type="number" id="set-lat" placeholder="Latitude" step="any">
+                        <input type="number" id="set-lng" placeholder="Longitude" step="any">
+                        <input type="number" id="set-radius" placeholder="รัศมี (เมตร)">
+                        <button class="btn-main" onclick="saveSettings()">บันทึกพิกัด</button>
+                        <button class="btn-sub" onclick="getCurrentLoc()">ใช้ตำแหน่งปัจจุบัน</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycby2ngNpRNPlMnmtzculXpAnW3BuOwy70YavN5MxoUv3hdyesJp4zXoTAPVh9poIG7KEsQ/exec'; 
-        let currentDesc = null, detectInt = null;
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwlX2GGermUeBp8-36V5yMkdioh-3MSH5LwMBZU9TtCAHRZLN84nMI4a37eKu2qYk-Jvg/exec'; 
+        let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100};
 
         async function initAI() {
-            const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
-            try {
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                startCam(1);
-            } catch (e) { alert("AI Load Error"); }
+            const URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
+            const res = await fetch(scriptURL + "?action=getSettings");
+            officeLoc = await res.json();
+            startCam(1);
         }
 
         async function startCam(p) {
             const vid = document.getElementById('vid'+p), wrap = document.getElementById('wrapper'+p);
             const btn = document.getElementById('btn'+p), stat = document.getElementById('stat'+p);
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                vid.srcObject = stream;
-                vid.onplay = () => {
-                    const canvas = faceapi.createCanvasFromMedia(vid);
-                    wrap.append(canvas);
-                    faceapi.matchDimensions(canvas, { width: vid.offsetWidth, height: vid.offsetHeight });
-                    detectInt = setInterval(async () => {
-                        const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                        const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        if (det) {
-                            currentDesc = Array.from(det.descriptor);
-                            wrap.classList.add('detected'); btn.disabled = false;
-                            stat.innerText = "ตรวจพบใบหน้า"; stat.style.color = "#00ff88";
-                        } else {
-                            wrap.classList.remove('detected'); btn.disabled = true;
-                            stat.innerText = "กำลังค้นหาใบหน้า..."; stat.style.color = "#ccc";
-                        }
-                    }, 400);
-                };
-            } catch (e) { console.log(e); }
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            vid.srcObject = stream;
+            vid.onplay = () => {
+                const canvas = faceapi.createCanvasFromMedia(vid);
+                wrap.append(canvas);
+                faceapi.matchDimensions(canvas, { width: vid.offsetWidth, height: vid.offsetHeight });
+                detectInt = setInterval(async () => {
+                    const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+                    if(det) {
+                        currentDesc = Array.from(det.descriptor);
+                        wrap.classList.add('detected'); btn.disabled = false;
+                        stat.innerText = "พบใบหน้า"; stat.style.color = "#00ff88";
+                    } else {
+                        wrap.classList.remove('detected'); btn.disabled = true;
+                        stat.innerText = "ค้นหาใบหน้า..."; stat.style.color = "#ccc";
+                    }
+                }, 400);
+            };
         }
 
         function setPhase(n) {
             clearInterval(detectInt);
             document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('video').forEach(v => { if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); });
+            document.querySelectorAll('video').forEach(v => v.srcObject?.getTracks().forEach(t => t.stop()));
             document.querySelectorAll('canvas').forEach(c => c.remove());
             document.getElementById('phase'+n).classList.add('active');
             if(n==1 || n==3) startCam(n);
         }
 
+        function getDist(lat1, lon1, lat2, lon2) {
+            const R = 6371e3, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
         async function doAction(act) {
-            const payload = { action: act, faceDescriptor: currentDesc, firstName: document.getElementById('reg-f').value, lastName: document.getElementById('reg-l').value, position: document.getElementById('reg-p').value };
-            setPhase(4); document.getElementById('res-msg').innerText = "กำลังส่งข้อมูล...";
-            try {
-                const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) });
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const d = getDist(pos.coords.latitude, pos.coords.longitude, officeLoc.lat, officeLoc.lng);
+                if(d > officeLoc.radius) {
+                    setPhase(4); document.getElementById('res-icon').innerText = "📍";
+                    document.getElementById('res-msg').innerText = `อยู่นอกพื้นที่\nห่างออกไป ${Math.round(d)} ม.`;
+                    return;
+                }
+                const payload = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value };
+                setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
+                const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(payload) });
                 const txt = await res.text();
                 document.getElementById('res-msg').innerText = txt;
                 document.getElementById('res-icon').innerText = txt.includes("สำเร็จ") ? "✅" : "⚠️";
-            } catch (e) { document.getElementById('res-msg').innerText = "Error!"; }
+            }, () => alert("กรุณาเปิด GPS"));
         }
 
-        // Admin functions
-        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-        
+        // Admin
+        function toggleModal(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; }
         function checkAdminPass() {
             if(document.getElementById('admin-pass').value === "1234") {
-                toggleModal('modal-pass', false);
-                document.getElementById('admin-panel').style.display = 'block';
-                document.getElementById('app-view').style.display = 'none';
-                fetchData();
-            } else { alert("รหัสผ่านไม่ถูกต้อง"); }
+                toggleModal('modal-pass', false); document.getElementById('admin-panel').style.display='block';
+                document.getElementById('app-view').style.display='none'; fetchData();
+            } else alert("รหัสผิด");
         }
-
         async function fetchData() {
-            try {
-                const resLog = await fetch(scriptURL + "?action=getLogs");
-                const logs = await resLog.json();
-                document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]} ${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-                
-                const resEmp = await fetch(scriptURL + "?action=getEmployees");
-                const emps = await resEmp.json();
-                document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
-                    <button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:3px 8px; border-radius:5px; cursor:pointer;">แก้</button>
-                    <button onclick="handleDelete('${r[0]}')" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:3px 8px; border-radius:5px; cursor:pointer; margin-left:3px;">ลบ</button>
-                </td></tr>`).join('');
-            } catch(e) {}
+            const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
+            document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
+            const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
+            document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
+                <button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')">แก้</button>
+                <button onclick="handleDel('${r[0]}')" style="color:#ff4d4d;margin-left:5px">ลบ</button>
+            </td></tr>`).join('');
         }
-
-        function openEdit(id, f, l, p) {
-            document.getElementById('edit-id').value = id; document.getElementById('edit-f').value = f;
-            document.getElementById('edit-l').value = l; document.getElementById('edit-p').value = p;
-            toggleModal('modal-edit', true);
+        function openEdit(id,f,l,p) { 
+            document.getElementById('edit-id').value=id; document.getElementById('edit-f').value=f;
+            document.getElementById('edit-l').value=l; document.getElementById('edit-p').value=p;
+            toggleModal('modal-edit', true); 
         }
-
         async function submitEdit() {
-            const payload = { action: "editEmployee", id: document.getElementById('edit-id').value, firstName: document.getElementById('edit-f').value, lastName: document.getElementById('edit-l').value, position: document.getElementById('edit-p').value };
-            const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) });
-            alert(await res.text()); toggleModal('modal-edit', false); fetchData();
+            const p = { action:"editEmployee", id:document.getElementById('edit-id').value, firstName:document.getElementById('edit-f').value, lastName:document.getElementById('edit-l').value, position:document.getElementById('edit-p').value };
+            await fetch(scriptURL, {method:'POST', body:JSON.stringify(p)}); toggleModal('modal-edit', false); fetchData();
         }
-
-        async function handleDelete(id) {
-            if(!confirm("ยืนยันการลบ?")) return;
-            const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: "deleteEmployee", id: id }) });
-            alert(await res.text()); fetchData();
+        async function handleDel(id) { if(confirm("ลบ?")) { await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})}); fetchData(); } }
+        function switchTab(id) { 
+            document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+            document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+            document.getElementById(id).style.display='block'; document.getElementById('m-'+id.split('-')[1]).classList.add('active');
         }
-
-        function switchTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById(id).style.display = 'block'; document.getElementById('m-'+id.split('-')[1]).classList.add('active');
+        async function saveSettings() {
+            const p = { action:"saveSettings", lat:parseFloat(document.getElementById('set-lat').value), lng:parseFloat(document.getElementById('set-lng').value), radius:parseInt(document.getElementById('set-radius').value) };
+            await fetch(scriptURL,{method:'POST', body:JSON.stringify(p)}); alert("บันทึกแล้ว"); officeLoc = {lat:p.lat, lng:p.lng, radius:p.radius};
         }
-
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('app-view').style.display = 'flex'; setPhase(1); }
-        function exportExcel() { XLSX.writeFile(XLSX.utils.table_to_book(document.querySelector('table')), "Attendance_Report.xlsx"); }
-
+        function getCurrentLoc() { navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('set-lat').value=p.coords.latitude; document.getElementById('set-lng').value=p.coords.longitude; }); }
+        function closeAdmin() { document.getElementById('admin-panel').style.display='none'; document.getElementById('app-view').style.display='flex'; setPhase(1); }
         initAI();
     </script>
 </body>
