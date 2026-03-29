@@ -25,9 +25,9 @@
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         
         input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; }
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 20px; }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; background: var(--primary); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-main:disabled { background: #444; color: #888; cursor: not-allowed; }
-        .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 10px; cursor: pointer; }
+        .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 240px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 25px; }
@@ -42,10 +42,9 @@
 
         .admin-float { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; font-size: 22px; z-index: 500; }
 
-        /* Admin Password Modal Style */
+        /* Modal */
         #admin-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:2000; align-items:center; justify-content:center; }
-        .modal-content { background:var(--card); width:320px; padding:35px; border-radius:30px; border:1px solid rgba(255,255,255,0.15); text-align:center; box-shadow: 0 25px 50px rgba(0,0,0,0.6); transform: scale(0.9); transition: 0.3s; }
-        .modal-active .modal-content { transform: scale(1); }
+        .modal-content { background:var(--card); width:320px; padding:35px; border-radius:30px; border:1px solid rgba(255,255,255,0.15); text-align:center; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
     </style>
 </head>
 <body>
@@ -59,7 +58,6 @@
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
                 <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
             </div>
-
             <div class="phase" id="phase2">
                 <h2 style="color:var(--primary); margin-bottom:20px;">ข้อมูลพนักงาน</h2>
                 <input type="text" id="reg-f" placeholder="ชื่อจริง">
@@ -68,14 +66,12 @@
                 <button class="btn-main" onclick="setPhase(3)">ถัดไป: สแกนหน้า</button>
                 <button class="btn-sub" onclick="setPhase(1)">กลับหน้าแรก</button>
             </div>
-
             <div class="phase" id="phase3">
                 <h2 style="color:var(--primary);">บันทึกใบหน้า</h2>
                 <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video><div class="laser"></div></div>
                 <p id="stat3" style="text-align:center;">กรุณานิ่งสักครู่...</p>
                 <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันการลงทะเบียน</button>
             </div>
-
             <div class="phase" id="phase4">
                 <div id="res-icon" style="font-size:60px; margin-bottom:15px;">⏳</div>
                 <p id="res-msg" style="text-align:center; padding:10px; font-weight: 600; font-size: 1.1rem;"></p>
@@ -121,7 +117,7 @@
                     <h3>รายชื่อพนักงาน</h3>
                     <div class="table-container">
                         <table id="empTable">
-                            <thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th></tr></thead>
+                            <thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th><th>จัดการ</th></tr></thead>
                             <tbody id="empBody"></tbody>
                         </table>
                     </div>
@@ -132,7 +128,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyQVq6OkO9D4urApei3SIBFJWJyWFGf34KU7c53Nf9CIozLtxIKzWxY20PWNPP9LMXXVg/exec'; 
+        // ⚠️ อย่าลืมใส่ URL ของคุณที่นี่
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRWdMrYbX6XbsPbNldj6DDHcKkB8xPTlXL--UdYNAmysZq9iiwMJht798gP1ON8L_7MA/exec'; 
         let currentDesc = null;
         let detectInt = null;
 
@@ -160,12 +157,10 @@
                     wrap.append(canvas);
                     const displaySize = { width: vid.offsetWidth, height: vid.offsetHeight };
                     faceapi.matchDimensions(canvas, displaySize);
-
                     detectInt = setInterval(async () => {
                         const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
                         const ctx = canvas.getContext('2d');
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
                         if (det) {
                             currentDesc = Array.from(det.descriptor);
                             wrap.classList.add('detected');
@@ -200,52 +195,31 @@
                 lastName: document.getElementById('reg-l').value,
                 position: document.getElementById('reg-p').value
             };
-            
             setPhase(4);
             document.getElementById('res-icon').innerText = "⏳";
             document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-
             try {
                 const response = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) });
                 const resultText = await response.text();
-                
                 document.getElementById('res-msg').innerText = resultText;
-                
-                if (resultText.includes("สำเร็จ")) {
-                    document.getElementById('res-icon').innerText = "✅";
-                } else if (resultText.includes("แล้ว") || resultText.includes("นอกเวลา")) {
-                    document.getElementById('res-icon').innerText = "⚠️";
-                } else {
-                    document.getElementById('res-icon').innerText = "❌";
-                }
-            } catch (e) {
-                document.getElementById('res-msg').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ";
-            }
+                if (resultText.includes("สำเร็จ")) document.getElementById('res-icon').innerText = "✅";
+                else if (resultText.includes("แล้ว") || resultText.includes("นอกเวลา")) document.getElementById('res-icon').innerText = "⚠️";
+                else document.getElementById('res-icon').innerText = "❌";
+            } catch (e) { document.getElementById('res-msg').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ"; }
         }
 
         function toggleAdminModal(show) {
-            const modal = document.getElementById('admin-modal');
-            if (show) {
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('modal-active'), 10);
-                document.getElementById('admin-pass').focus();
-            } else {
-                modal.classList.remove('modal-active');
-                setTimeout(() => modal.style.display = 'none', 300);
-                document.getElementById('admin-pass').value = '';
-            }
+            document.getElementById('admin-modal').style.display = show ? 'flex' : 'none';
+            if(show) document.getElementById('admin-pass').focus();
         }
 
         function checkAdminPass() {
-            const pass = document.getElementById('admin-pass').value;
-            if (pass === "1234") {
+            if (document.getElementById('admin-pass').value === "1234") {
                 toggleAdminModal(false);
                 document.getElementById('admin-panel').style.display = 'block';
                 document.getElementById('app-view').style.display = 'none';
                 fetchData();
-            } else {
-                alert("รหัสผ่านไม่ถูกต้อง!");
-            }
+            } else { alert("รหัสผ่านไม่ถูกต้อง"); }
         }
 
         function closeAdmin() {
@@ -269,12 +243,34 @@
                 
                 const empRes = await fetch(scriptURL + "?action=getEmployees");
                 const emps = await empRes.json();
-                document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+                document.getElementById('empBody').innerHTML = emps.map(r => `
+                    <tr>
+                        <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td>
+                        <td>
+                            <button onclick="editEmp('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:#4facfe; border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer;">แก้</button>
+                            <button onclick="deleteEmp('${r[0]}')" style="background:#ff4d4d; border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; margin-left:4px;">ลบ</button>
+                        </td>
+                    </tr>`).join('');
             } catch (e) { console.log(e); }
         }
 
-        function exportExcel(id) { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById(id)), "Report.xlsx"); }
+        async function deleteEmp(id) {
+            if (!confirm("ลบพนักงาน " + id + " ?")) return;
+            const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: "deleteEmployee", id: id }) });
+            alert(await res.text());
+            fetchData();
+        }
 
+        async function editEmp(id, fname, lname, pos) {
+            const nf = prompt("ชื่อใหม่:", fname); if (nf === null) return;
+            const nl = prompt("นามสกุลใหม่:", lname);
+            const np = prompt("ตำแหน่งใหม่:", pos);
+            const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: "editEmployee", id: id, firstName: nf, lastName: nl, position: np }) });
+            alert(await res.text());
+            fetchData();
+        }
+
+        function exportExcel(id) { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById(id)), "Report.xlsx"); }
         initAI();
     </script>
 </body>
