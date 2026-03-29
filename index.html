@@ -25,15 +25,14 @@
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         
         input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; outline: none; }
-        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(45deg, var(--primary), var(--accent)); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-main:active { transform: scale(0.98); }
+        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(45deg, var(--primary), var(--accent)); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-main:disabled { background: #333; color: #777; cursor: not-allowed; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
         /* Admin UI */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 30px; }
-        .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; transition: 0.3s; }
+        .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; }
         .menu-item.active { background: rgba(0, 242, 254, 0.1); color: var(--primary); font-weight: 600; }
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
         .table-container { background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-top: 20px; }
@@ -42,15 +41,20 @@
 
         /* Modern Modals */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(15px); z-index:2000; align-items:center; justify-content:center; }
-        .modal-box { 
-            background: rgba(255, 255, 255, 0.07); width: 380px; padding: 40px; border-radius: 40px; 
-            border: 1px solid rgba(255, 255, 255, 0.15); text-align: center; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8); 
-            backdrop-filter: blur(25px);
+        .modal-box { background: rgba(15, 23, 42, 0.9); width:380px; padding:40px; border-radius:35px; border:1px solid rgba(0, 242, 254, 0.3); text-align:center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        .modal-box h3 { color: var(--primary); margin-bottom: 20px; }
+        label { display: block; text-align: left; font-size: 0.75rem; color: var(--primary); margin: 5px 0 5px 5px; }
+
+        /* ปุ่มบันทึก GPS ดีไซน์ใหม่ */
+        .btn-gps-save { 
+            width: 100%; padding: 18px; border: none; border-radius: 20px; 
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); 
+            color: #050a18; font-weight: 700; font-size: 1.1rem; cursor: pointer; 
+            transition: 0.3s; box-shadow: 0 10px 15px rgba(0, 242, 254, 0.3); margin-top: 20px;
         }
-        .modal-box h3 { font-size: 1.5rem; background: linear-gradient(to right, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 25px; }
-        .modal-box label { color: #4facfe; font-size: 0.75rem; text-align: left; display: block; margin: 0 0 5px 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-gps-save:hover { transform: translateY(-2px); filter: brightness(1.1); }
         
-        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; box-shadow: 0 10px 20px rgba(0,242,254,0.3); z-index: 500; }
+        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; }
     </style>
 </head>
 <body>
@@ -58,30 +62,30 @@
     <div class="app-view" id="app-view">
         <div class="app-container">
             <div class="phase active" id="phase1">
-                <h2 style="color:var(--primary); font-weight:600;">AI FACE ID</h2>
+                <h2 style="color:var(--primary);">AI FACE ID</h2>
                 <div class="scanner-view" id="wrapper1"><video id="vid1" autoplay muted playsinline></video><div class="laser"></div></div>
-                <p id="stat1" style="color:#aaa; font-size:0.85rem;">กำลังค้นหาใบหน้า...</p>
+                <p id="stat1" style="color:#aaa;">กำลังค้นหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
-                <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงานใหม่</button>
+                <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงาน</button>
             </div>
             <div class="phase" id="phase2">
-                <h3 style="color:var(--primary); margin-bottom:20px;">ลงทะเบียน</h3>
+                <h3>ข้อมูลพนักงาน</h3>
                 <input type="text" id="reg-f" placeholder="ชื่อจริง">
                 <input type="text" id="reg-l" placeholder="นามสกุล">
                 <input type="text" id="reg-p" placeholder="ตำแหน่ง">
-                <button class="btn-main" onclick="setPhase(3)">ขั้นตอนสุดท้าย: สแกนใบหน้า</button>
+                <button class="btn-main" onclick="setPhase(3)">ต่อไป: สแกนใบหน้า</button>
                 <button class="btn-sub" onclick="setPhase(1)">ยกเลิก</button>
             </div>
             <div class="phase" id="phase3">
-                <h3 style="color:var(--primary);">บันทึกใบหน้า</h3>
+                <h3>บันทึกใบหน้า</h3>
                 <div class="scanner-view" id="wrapper3"><video id="vid3" autoplay muted playsinline></video><div class="laser"></div></div>
                 <p id="stat3">กรุณานิ่งสักครู่...</p>
                 <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันลงทะเบียน</button>
             </div>
             <div class="phase" id="phase4">
-                <div id="res-icon" style="font-size:75px; margin-bottom:20px;">⏳</div>
-                <p id="res-msg" style="text-align:center; font-size:1.1rem; line-height:1.6;"></p>
-                <button class="btn-main" style="margin-top:20px" onclick="setPhase(1)">กลับหน้าหลัก</button>
+                <div id="res-icon" style="font-size:70px; margin-bottom:20px;">⏳</div>
+                <p id="res-msg" style="text-align:center; white-space: pre-line;"></p>
+                <button class="btn-main" onclick="setPhase(1)">ตกลง</button>
             </div>
         </div>
     </div>
@@ -90,41 +94,53 @@
 
     <div id="modal-pass" class="modal-overlay">
         <div class="modal-box">
-            <h3>🔒 Admin Login</h3>
+            <h3>🔒 Security Check</h3>
             <input type="password" id="admin-pass" placeholder="••••" style="text-align:center; font-size:1.5rem; letter-spacing:10px; margin-top:20px;">
-            <button class="btn-main" style="margin-top:20px" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
+            <button class="btn-main" onclick="checkAdminPass()">เข้าสู่ระบบ</button>
             <button class="btn-sub" onclick="toggleModal('modal-pass', false)">ปิด</button>
+        </div>
+    </div>
+
+    <div id="modal-edit" class="modal-overlay">
+        <div class="modal-box">
+            <h3>📝 แก้ไขพนักงาน</h3>
+            <input type="hidden" id="edit-id">
+            <label>ชื่อ</label><input type="text" id="edit-f">
+            <label>นามสกุล</label><input type="text" id="edit-l">
+            <label>ตำแหน่ง</label><input type="text" id="edit-p">
+            <button class="btn-main" onclick="submitEdit()">บันทึกการแก้ไข</button>
+            <button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button>
         </div>
     </div>
 
     <div id="modal-gps" class="modal-overlay">
         <div class="modal-box">
-            <h3>📍 GPS Settings</h3>
+            <h3>📍 ตั้งค่าจุดเช็คอิน</h3>
             <label>Latitude</label><input type="number" id="set-lat" step="any">
             <label>Longitude</label><input type="number" id="set-lng" step="any">
             <label>Radius (Meters)</label><input type="number" id="set-radius">
-            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin:10px 0 20px 0;" onclick="getCurrentLoc()">🎯 ใช้ตำแหน่งปัจจุบันของฉัน</div>
-            <button class="btn-main" onclick="saveSettings()">บันทึกพิกัดสถานที่</button>
-            <button class="btn-sub" style="color:#ff4d4d; margin-top:15px;" onclick="toggleModal('modal-gps', false)">ปิดหน้าต่าง</button>
+            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin-bottom:10px;" onclick="getCurrentLoc()">🎯 ใช้ตำแหน่งปัจจุบันของฉัน</div>
+            <button class="btn-gps-save" onclick="saveSettings()">บันทึกพิกัดสถานที่</button>
+            <button class="btn-sub" style="color:#ff4d4d; margin-top:10px;" onclick="toggleModal('modal-gps', false)">ปิดหน้าต่าง</button>
         </div>
     </div>
 
     <div id="admin-panel">
         <div style="display:flex; height:100%;">
             <div class="sidebar">
-                <h2 style="color:var(--primary); margin-bottom:40px;">ADMIN</h2>
-                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานลงเวลา</div>
-                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 จัดการพนักงาน</div>
-                <div class="menu-item" onclick="openGPSModal()">📍 ตั้งค่า GPS ระบบ</div>
+                <h2>ADMIN</h2>
+                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานวันนี้</div>
+                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
+                <div class="menu-item" onclick="openGPSModal()">📍 ตั้งค่า GPS</div>
                 <div class="menu-item" style="margin-top:auto; color:#ff4d4d;" onclick="closeAdmin()">🚪 ออกจากระบบ</div>
             </div>
             <div class="main-content">
                 <div id="tab-report" class="tab-content">
-                    <h3>รายงานประจำวันนี้</h3>
+                    <h3>รายงานวันนี้</h3>
                     <div class="table-container"><table><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
                 </div>
                 <div id="tab-emp" class="tab-content" style="display:none;">
-                    <h3>รายชื่อพนักงานทั้งหมด</h3>
+                    <h3>จัดการพนักงาน</h3>
                     <div class="table-container"><table><thead><tr><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>ตำแหน่ง</th><th>จัดการ</th></tr></thead><tbody id="empBody"></tbody></table></div>
                 </div>
             </div>
@@ -132,7 +148,7 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyG35T3QyEX1uEy-_YyOxnzA72UTs8J98uZad7vVP2SJebKNunD-wmOSjIPcHITVcwxfw/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyZfa2huhZej2_rlbz4kc69e7JRYJQowEesGpn8SSCI0RJZdsmjTg3kAYxY9Rz2HGt2fw/exec'; 
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100};
 
         async function initAI() {
@@ -160,10 +176,10 @@
                     if(det) {
                         currentDesc = Array.from(det.descriptor);
                         wrap.classList.add('detected'); btn.disabled = false;
-                        stat.innerText = "พบใบหน้า สแกนได้!"; stat.style.color = "#00ff88";
+                        stat.innerText = "พบใบหน้า สแกนได้!";
                     } else {
                         wrap.classList.remove('detected'); btn.disabled = true;
-                        stat.innerText = "กำลังค้นหาใบหน้า..."; stat.style.color = "#aaa";
+                        stat.innerText = "ค้นหาใบหน้า...";
                     }
                 }, 400);
             };
@@ -178,55 +194,50 @@
             if(n==1 || n==3) startCam(n);
         }
 
-        function getDist(lat1, lon1, lat2, lon2) {
-            const R = 6371e3, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
         async function doAction(act) {
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                const d = getDist(pos.coords.latitude, pos.coords.longitude, officeLoc.lat, officeLoc.lng);
-                if(d > officeLoc.radius) {
-                    setPhase(4); document.getElementById('res-icon').innerText = "📍";
-                    document.getElementById('res-msg').innerHTML = `<span style="color:#ff4d4d">อยู่นอกเขตพื้นที่</span><br>ระยะห่าง: ${Math.round(d)} เมตร<br>(อนุญาตภายใน ${officeLoc.radius} ม.)`;
-                    return;
-                }
                 const p = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value };
-                setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
+                setPhase(4); document.getElementById('res-msg').innerText = "กำลังส่งข้อมูล...";
                 const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
                 const txt = await res.text();
                 document.getElementById('res-msg').innerText = txt;
                 document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
-            }, () => alert("กรุณาเปิด GPS"));
+            });
         }
 
         function toggleModal(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; }
         
-        function openGPSModal() {
-            document.getElementById('set-lat').value = officeLoc.lat;
-            document.getElementById('set-lng').value = officeLoc.lng;
-            document.getElementById('set-radius').value = officeLoc.radius;
-            toggleModal('modal-gps', true);
-        }
-
         function checkAdminPass() {
             if(document.getElementById('admin-pass').value === "1234") {
                 toggleModal('modal-pass', false); document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none'; fetchData();
-            } else alert("รหัสผ่านไม่ถูกต้อง");
+            } else alert("รหัสผิด");
         }
 
         async function fetchData() {
             const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
             document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
+            
             const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
+            // --- คืนค่าปุ่ม แก้ไข และ ลบ ---
             document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
-                <button onclick="handleDel('${r[0]}')" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:4px 8px; border-radius:8px; cursor:pointer;">ลบ</button>
+                <button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 8px; border-radius:8px; cursor:pointer;">แก้ไข</button>
+                <button onclick="handleDel('${r[0]}')" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:4px 8px; border-radius:8px; cursor:pointer; margin-left:5px">ลบ</button>
             </td></tr>`).join('');
         }
 
-        async function handleDel(id) { if(confirm("ยืนยันการลบ?")) { await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})}); fetchData(); } }
+        function openEdit(id,f,l,p) { 
+            document.getElementById('edit-id').value=id; document.getElementById('edit-f').value=f;
+            document.getElementById('edit-l').value=l; document.getElementById('edit-p').value=p;
+            toggleModal('modal-edit', true); 
+        }
+
+        async function submitEdit() {
+            const p = { action:"editEmployee", id:document.getElementById('edit-id').value, firstName:document.getElementById('edit-f').value, lastName:document.getElementById('edit-l').value, position:document.getElementById('edit-p').value };
+            await fetch(scriptURL, {method:'POST', body:JSON.stringify(p)}); toggleModal('modal-edit', false); fetchData();
+        }
+
+        async function handleDel(id) { if(confirm("ลบพนักงาน?")) { await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})}); fetchData(); } }
 
         function switchTab(id) { 
             document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
@@ -236,8 +247,8 @@
 
         async function saveSettings() {
             const p = { action:"saveSettings", lat:parseFloat(document.getElementById('set-lat').value), lng:parseFloat(document.getElementById('set-lng').value), radius:parseInt(document.getElementById('set-radius').value) };
-            const res = await fetch(scriptURL,{method:'POST', body:JSON.stringify(p)}); 
-            alert(await res.text()); officeLoc = {lat:p.lat, lng:p.lng, radius:p.radius};
+            await fetch(scriptURL,{method:'POST', body:JSON.stringify(p)}); 
+            alert("บันทึกพิกัดแล้ว"); officeLoc = {lat:p.lat, lng:p.lng, radius:p.radius};
             toggleModal('modal-gps', false);
         }
 
@@ -247,6 +258,13 @@
                 document.getElementById('set-lng').value=p.coords.longitude; 
                 document.getElementById('set-radius').value=100;
             }); 
+        }
+        
+        function openGPSModal() {
+            document.getElementById('set-lat').value = officeLoc.lat;
+            document.getElementById('set-lng').value = officeLoc.lng;
+            document.getElementById('set-radius').value = officeLoc.radius;
+            toggleModal('modal-gps', true);
         }
 
         function closeAdmin() { document.getElementById('admin-panel').style.display='none'; document.getElementById('app-view').style.display='flex'; setPhase(1); }
