@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FaceID Real-time Dashboard</title>
+    <title>AI FaceID Ultimate - Full Fix</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
@@ -18,13 +18,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow: hidden; }
 
-        /* --- UI ส่วนหลัก --- */
+        /* UI & Scanner */
         .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .app-container { width: 350px; height: 620px; background: var(--card); backdrop-filter: blur(25px); border-radius: 40px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; }
         .phase { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
         .phase.active { display: flex; justify-content: center; }
-        
-        /* Scanner */
         .scanner-view { width: 100%; height: 260px; border-radius: 25px; overflow: hidden; position: relative; background: #000; border: 2px solid var(--primary); margin: 20px 0; }
         .scanner-view.detected { border-color: var(--success); box-shadow: 0 0 20px rgba(0,255,136,0.4); }
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
@@ -32,32 +30,26 @@
         .laser { position: absolute; width: 100%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
-        /* Buttons & Inputs */
+        /* Buttons & Tables */
         input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; outline: none; }
         .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
         .btn-excel { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-
-        /* --- Real-time Status Indicator --- */
-        .live-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--success); background: rgba(0,255,136,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(0,255,136,0.2); }
+        .live-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--success); }
         .pulse-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); } }
 
-        /* Admin Panel */
+        /* Admin & Modals */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 30px; }
-        .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; transition: 0.3s; }
+        .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; }
         .menu-item.active { background: rgba(0, 242, 254, 0.1); color: var(--primary); font-weight: 600; }
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
         .table-container { background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        
-        /* Modals */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,5,15,0.85); backdrop-filter:blur(15px); z-index:5000; align-items:center; justify-content:center; }
-        .modal-box { background: var(--glass); width:380px; padding:35px; border-radius:35px; border:1px solid var(--border); text-align:center; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes modalPop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
-        
+        .modal-box { background: var(--glass); width:380px; padding:35px; border-radius:35px; border:1px solid var(--border); text-align:center; }
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
         .toast { background: var(--glass); border: 1px solid var(--border); padding: 16px 25px; border-radius: 20px; margin-bottom: 10px; transform: translateX(120%); transition: 0.5s; }
         .toast.show { transform: translateX(0); }
@@ -68,9 +60,9 @@
 
     <div id="toast-container"></div>
 
-    <div id="custom-dialog" class="modal-overlay"><div class="modal-box"><div id="dialog-icon" style="font-size:50px; margin-bottom:15px;">✅</div><h3 id="dialog-title"></h3><p id="dialog-msg"></p><div style="display:flex; justify-content:center; gap:10px;"><button id="btn-dialog-ok" class="btn-main" style="width:120px; margin:0">ตกลง</button><button id="btn-dialog-cancel" class="btn-sub" style="color:#ff4d4d; display:none;">ยกเลิก</button></div></div></div>
+    <div id="custom-dialog" class="modal-overlay"><div class="modal-box"><div id="dialog-icon" style="font-size:50px; margin-bottom:15px;">✅</div><h3 id="dialog-title"></h3><p id="dialog-msg"></p><button id="btn-dialog-ok" class="btn-main">ตกลง</button></div></div>
     <div id="modal-edit" class="modal-overlay"><div class="modal-box"><h3>📝 แก้ไขข้อมูล</h3><input type="hidden" id="edit-id"><input type="text" id="edit-f" placeholder="ชื่อจริง"><input type="text" id="edit-l" placeholder="นามสกุล"><select id="edit-p"><option value="ผู้บริหาร">ผู้บริหาร</option><option value="ครู">ครู</option><option value="เจ้าหน้าที่">เจ้าหน้าที่</option></select><button class="btn-main" onclick="submitEdit()">บันทึก</button><button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button></div></div>
-    <div id="modal-gps" class="modal-overlay"><div class="modal-box"><h3>📍 ตั้งค่า GPS</h3><input type="number" id="set-lat" step="any" placeholder="Lat"><input type="number" id="set-lng" step="any" placeholder="Lng"><input type="number" id="set-radius" placeholder="Radius"><div style="color:var(--primary); cursor:pointer; font-size:0.85rem; margin-bottom:15px" onclick="getCurrentLoc()">🎯 ดึงพิกัดปัจจุบัน</div><button class="btn-main" onclick="saveSettings()">บันทึก</button><button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button></div></div>
+    <div id="modal-gps" class="modal-overlay"><div class="modal-box"><h3>📍 ตั้งค่า GPS</h3><input type="number" id="set-lat" step="any"><input type="number" id="set-lng" step="any"><input type="number" id="set-radius"><button class="btn-main" onclick="saveSettings()">บันทึก</button><button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button></div></div>
 
     <div class="app-view" id="app-view">
         <div class="app-container">
@@ -87,7 +79,7 @@
     </div>
 
     <div class="admin-float" onclick="toggleModal('modal-login', true)">📊</div>
-    <div id="modal-login" class="modal-overlay"><div class="modal-box"><h3>🔒 Login</h3><input type="password" id="admin-pass" placeholder="••••" style="text-align:center;"><button class="btn-main" onclick="checkAdminPass()">ตกลง</button><button class="btn-sub" onclick="toggleModal('modal-login', false)">ปิด</button></div></div>
+    <div id="modal-login" class="modal-overlay"><div class="modal-box"><h3>🔒 Login</h3><input type="password" id="admin-pass" placeholder="••••"><button class="btn-main" onclick="checkAdminPass()">ตกลง</button><button class="btn-sub" onclick="toggleModal('modal-login', false)">ปิด</button></div></div>
 
     <div id="admin-panel">
         <div style="display:flex; height:100%;">
@@ -103,11 +95,11 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                         <div style="display:flex; align-items:center; gap:15px;">
                             <h3>รายงานประจำวัน</h3>
-                            <div class="live-status"><div class="pulse-dot"></div> ข้อมูลอัปเดตอัตโนมัติ</div>
+                            <div class="live-status"><div class="pulse-dot"></div> Live</div>
                         </div>
                         <button class="btn-excel" onclick="exportToExcel()">📊 Export Excel</button>
                     </div>
-                    <div class="table-container"><table><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
+                    <div class="table-container"><table><thead><tr><th>วันที่</th><th>ID</th><th>ชื่อ</th><th>นามสกุล</th><th>เข้า</th><th>ออก</th><th>สถานะ</th></tr></thead><tbody id="logBody"></tbody></table></div>
                 </div>
                 <div id="tab-emp" class="tab-content" style="display:none;">
                     <h3>จัดการพนักงาน</h3>
@@ -180,15 +172,19 @@
             if(document.getElementById('admin-pass').value === "1234") {
                 toggleModal('modal-login', false); document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none';
-                fetchData(); syncInt = setInterval(fetchData, 5000); // ตรงนี้แหละครับ Real-time ของจริง!
+                fetchData(); syncInt = setInterval(fetchData, 5000);
                 showToast("Admin Logged In");
             } else showToast("รหัสไม่ถูกต้อง");
         }
 
+        // --- แก้ไข fetchData ให้ดึง นามสกุล มาโชว์ในตารางรายงาน ---
         async function fetchData() {
             try {
                 const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
-                document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
+                document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr>
+                    <td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td>
+                </tr>`).join('');
+
                 const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
                 document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><button onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 8px; border-radius:8px; cursor:pointer;">แก้ไข</button> <button onclick="handleDel('${r[0]}','${r[1]}')" style="background:none; border:1px solid var(--error); color:var(--error); padding:4px 8px; border-radius:8px; cursor:pointer; margin-left:5px">ลบ</button></td></tr>`).join('');
             } catch(e){}
@@ -197,8 +193,8 @@
         function exportToExcel() {
             const table = document.querySelector("#tab-report table");
             const wb = XLSX.utils.table_to_book(table, { sheet: "Attendance" });
-            XLSX.writeFile(wb, `FaceID_Report.xlsx`);
-            showToast("Exported Success!");
+            XLSX.writeFile(wb, `FaceID_Report_Full.xlsx`);
+            showToast("Export Excel พร้อมนามสกุลสำเร็จ!");
         }
 
         function openEdit(id,f,l,p) { document.getElementById('edit-id').value=id; document.getElementById('edit-f').value=f; document.getElementById('edit-l').value=l; document.getElementById('edit-p').value=p; toggleModal('modal-edit', true); }
