@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI FaceID Premium System</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -23,13 +23,30 @@
             --success: #00ff88;
             --error: #ff4d4d;
             --warning: #ffbd2e;
+            --excel: #27ae60;
+            --pdf: #e74c3c;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow-x: hidden; }
 
+        /* --- CSS ปุ่ม Export ใหม่ --- */
+        .btn-excel { 
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); 
+            color: white; padding: 10px 20px; border-radius: 12px; border: none; 
+            cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; 
+            gap: 8px; transition: 0.3s; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+        }
+        .btn-pdf { 
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); 
+            color: white; padding: 10px 20px; border-radius: 12px; border: none; 
+            cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; 
+            gap: 8px; margin-left: 10px; transition: 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2);
+        }
+        .btn-excel:hover, .btn-pdf:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+
         /* Print Settings */
         @media print {
-            .sidebar, .btn-group-export, .admin-float, .live-status, .btn-action, .sync-indicator, .admin-float { display: none !important; }
+            .sidebar, .btn-excel, .btn-pdf, .admin-float, .admin-float { display: none !important; }
             .main-content { padding: 0 !important; width: 100% !important; }
             body { background: white !important; color: black !important; }
             table { width: 100% !important; border-collapse: collapse; color: black !important; }
@@ -82,12 +99,10 @@
         
         .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; font-size: 20px; }
 
-        .sync-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--success); }
-        .pulse-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        
-        .btn-edit { background: rgba(0, 242, 254, 0.1); border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
-        .btn-del { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--error); color: var(--error); padding: 5px 12px; border-radius: 8px; cursor: pointer; margin-left: 5px; }
+        .btn-edit { background: rgba(0, 242, 254, 0.1); border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .btn-edit:hover { background: var(--primary); color: #000; }
+        .btn-del { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--error); color: var(--error); padding: 5px 12px; border-radius: 8px; cursor: pointer; margin-left: 5px; transition: 0.3s; }
+        .btn-del:hover { background: var(--error); color: #fff; }
     </style>
 </head>
 <body>
@@ -150,31 +165,20 @@
         </div>
     </div>
 
-<div id="modal-gps" class="modal-overlay">
+    <div id="modal-gps" class="modal-overlay">
         <div class="modal-box" style="width: 420px;"> 
             <h3>📍 ตั้งค่าพิกัดสถานที่</h3>
             <div style="text-align: left; background: rgba(0,242,254,0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--border);">
                 <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 5px;"><strong>💡 วิธีการตั้งค่า:</strong></p>
                 <ul style="font-size: 0.8rem; color: #ccc; padding-left: 20px;">
-                    <li>ระบุค่า <b>Latitude / Longitude</b> ของสถานที่ทำงาน</li>
-                    <li><b>Radius:</b> รัศมี (เมตร) ที่อนุญาตให้สแกนได้ (แนะนำ 50-100 เมตร)</li>
-                    <li>หากอยู่ ณ สถานที่จริง สามารถกดปุ่มด้านล่างเพื่อดึงพิกัดอัตโนมัติได้</li>
+                    <li>ระบุค่า <b>Latitude / Longitude</b></li>
+                    <li><b>Radius:</b> รัศมี (เมตร) ที่อนุญาต (แนะนำ 50-100)</li>
                 </ul>
             </div>
-            
-            <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary);">Latitude (ละติจูด)</label>
-            <input type="number" id="set-lat" step="any" placeholder="ตัวอย่าง: 13.7563">
-            
-            <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary);">Longitude (ลองจิจูด)</label>
-            <input type="number" id="set-lng" step="any" placeholder="ตัวอย่าง: 100.5018">
-            
-            <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary);">Radius (รัศมีเป็นเมตร)</label>
-            <input type="number" id="set-radius" placeholder="ระบุตัวเลข เช่น 100">
-            
-            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin: 10px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="getCurrentLoc()">
-                🎯 <span>ใช้พิกัดปัจจุบันจากมือถือของคุณ</span>
-            </div>
-            
+            <input type="number" id="set-lat" step="any" placeholder="Latitude">
+            <input type="number" id="set-lng" step="any" placeholder="Longitude">
+            <input type="number" id="set-radius" placeholder="Radius (Meters)">
+            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin-bottom:20px;" onclick="getCurrentLoc()">🎯 ใช้พิกัดปัจจุบัน</div>
             <button class="btn-main" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
             <button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button>
         </div>
@@ -184,18 +188,18 @@
         <div style="display:flex; height:100%;">
             <div class="sidebar">
                 <h2 style="color:var(--primary); margin-bottom:30px;">ADMIN</h2>
-                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')">📋 รายงานวันนี้</div>
-                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')">👥 รายชื่อพนักงาน</div>
-                <div class="menu-item" onclick="openGPSModal()">📍 ตั้งค่า GPS</div>
-                <div class="menu-item" style="margin-top:auto; color:var(--error);" onclick="closeAdmin()">🚪 ออกจากระบบ</div>
+                <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')"><i class="fa-solid fa-chart-line"></i> รายงานวันนี้</div>
+                <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')"><i class="fa-solid fa-users"></i> รายชื่อพนักงาน</div>
+                <div class="menu-item" onclick="openGPSModal()"><i class="fa-solid fa-location-dot"></i> ตั้งค่า GPS</div>
+                <div class="menu-item" style="margin-top:auto; color:var(--error);" onclick="closeAdmin()"><i class="fa-solid fa-door-open"></i> ออกจากระบบ</div>
             </div>
             <div class="main-content">
                 <div id="tab-report" class="tab-content">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                         <h3>รายงานเข้า-ออกงาน</h3>
                         <div>
-                            <button class="btn-excel" onclick="exportToExcel()">📊 Excel</button>
-                            <button class="btn-pdf" onclick="window.print()">📄 PDF</button>
+                            <button class="btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> ส่งออก Excel</button>
+                            <button class="btn-pdf" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> พิมพ์ PDF</button>
                         </div>
                     </div>
                     <div class="table-container">
@@ -224,33 +228,18 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4oWWmoWttCQl2XroKcLUnSPRjfxusXyYD-787Gm0B5GAshuug/exec'; 
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
-        // 1. Init AI with Swal Loading
         async function initAI() {
-            Swal.fire({
-                title: 'กำลังเตรียมความพร้อม...',
-                html: 'โหลดสมองกล AI กรุณารอสักครู่',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
+            Swal.fire({ title: 'กำลังเตรียมความพร้อม...', html: 'โหลด AI กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'; 
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
                 await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
                 await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
-                
                 const res = await fetch(scriptURL + "?action=getSettings");
                 officeLoc = await res.json();
-                
-                Swal.close();
-                startCam(1); 
+                Swal.close(); startCam(1); 
             } catch (e) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'โหลด AI ไม่สำเร็จ',
-                    text: 'เครื่องนี้บล็อกการเข้าถึง AI กรุณาลองใช้ Edge หรือโหมดไม่ระบุตัวตน',
-                    confirmButtonText: 'ตกลง'
-                });
+                Swal.fire({ icon: 'error', title: 'โหลด AI ไม่สำเร็จ' });
             }
         }
 
@@ -278,16 +267,14 @@
                     }, 400);
                 };
             } catch(err) {
-                Swal.fire({ icon:'warning', title:'ไม่พบกล้อง', text:'กรุณาอนุญาตให้เข้าถึงกล้อง' });
+                Swal.fire({ icon:'warning', title:'ไม่พบกล้อง' });
             }
         }
 
         function setPhase(n) {
             clearInterval(detectInt);
             document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('video').forEach(v => {
-                if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
-            });
+            document.querySelectorAll('video').forEach(v => { if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); });
             document.querySelectorAll('canvas').forEach(c => c.remove());
             document.getElementById('phase'+n).classList.add('active');
             if(n==1 || n==3) startCam(n);
@@ -295,92 +282,46 @@
 
         function validateRegInfo() {
             if(!document.getElementById('reg-f').value || !document.getElementById('reg-l').value) {
-                return Swal.fire({ icon:'error', title:'ข้อมูลไม่ครบ', text:'กรุณากรอกชื่อและนามสกุล' });
+                return Swal.fire({ icon:'error', title:'ข้อมูลไม่ครบ' });
             }
             setPhase(3);
         }
 
-        // 2. Action with Swal Result
-    async function doAction(act) {
-            // 1. แสดง Loading ทันที
-            Swal.fire({
-                title: 'กำลังประมวลผล...',
-                text: 'กรุณารอสักครู่',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
+        // --- แก้ไข Logic กลับหน้าแรกที่นี่ ---
+        async function doAction(act) {
+            Swal.fire({ title: 'กำลังประมวลผล...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                const p = { 
-                    action: act, 
-                    faceDescriptor: currentDesc, 
-                    firstName: document.getElementById('reg-f').value, 
-                    lastName: document.getElementById('reg-l').value, 
-                    position: document.getElementById('reg-p').value, 
-                    lat: pos.coords.latitude, 
-                    lng: pos.coords.longitude 
-                };
-
+                const p = { action: act, faceDescriptor: currentDesc, firstName: document.getElementById('reg-f').value, lastName: document.getElementById('reg-l').value, position: document.getElementById('reg-p').value, lat: pos.coords.latitude, lng: pos.coords.longitude };
                 try {
                     const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
                     const txt = await res.text();
-                    
-                    Swal.close(); // ปิดตัวโหลด
-
+                    Swal.close();
                     if (txt.includes("✅")) {
-                        // 2. ใช้ .then เพื่อรอให้กดตกลงก่อนค่อยเปลี่ยนหน้า
-                        Swal.fire({ 
-                            icon: 'success', 
-                            title: 'บันทึกสำเร็จ', 
-                            html: txt.replace(/\n/g, '<br>'),
-                            confirmButtonText: 'ตกลง',
-                            allowOutsideClick: false // บังคับให้กดปุ่มเท่านั้น
-                        }).then((result) => {
+                        Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', html: txt.replace(/\n/g, '<br>'), confirmButtonText: 'ตกลง', allowOutsideClick: false })
+                        .then((result) => {
                             if (result.isConfirmed) {
-                                // ล้างค่าชื่อถ้าเป็นการลงทะเบียน
                                 if (act === 'register') {
                                     document.getElementById('reg-f').value = '';
                                     document.getElementById('reg-l').value = '';
                                 }
-                                // 3. คำสั่งสำคัญ: ดีดกลับ Phase 1
-                                setPhase(1); 
+                                setPhase(1); // กลับหน้าแรกแน่นอน
                             }
                         });
                     } else {
-                        Swal.fire({ 
-                            icon: 'warning', 
-                            title: 'แจ้งเตือน', 
-                            html: txt.replace(/\n/g, '<br>'),
-                            confirmButtonText: 'รับทราบ'
-                        }).then(() => {
-                            setPhase(1); // กลับไปหน้าแรกเพื่อเริ่มใหม่
-                        });
+                        Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', html: txt.replace(/\n/g, '<br>') }).then(() => setPhase(1));
                     }
-                } catch (e) {
-                    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'การเชื่อมต่อล้มเหลว' });
-                }
-            }, (err) => {
-                Swal.fire({ icon: 'error', title: 'GPS Error', text: 'กรุณาเปิดตำแหน่ง (Location) บนอุปกรณ์' });
-            });
+                } catch (e) { Swal.fire({ icon: 'error', title: 'ผิดพลาด' }); }
+            }, (err) => { Swal.fire({ icon: 'error', title: 'GPS Error' }); });
         }
 
-        // Admin & Others
         async function openAdminLogin() {
-            const { value: password } = await Swal.fire({
-                title: 'รหัสผ่านแอดมิน',
-                input: 'password',
-                inputPlaceholder: 'ใส่รหัสผ่าน 4 หลัก',
-                inputAttributes: { maxlength: 4, autofocus: 'autofocus' },
-                showCancelButton: true
-            });
-
+            const { value: password } = await Swal.fire({ title: 'รหัสผ่านแอดมิน', input: 'password', inputPlaceholder: 'ใส่รหัสผ่าน 4 หลัก', inputAttributes: { maxlength: 4 }, showCancelButton: true });
             if (password === "1234") {
                 document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none'; 
                 fetchData();
                 syncInt = setInterval(fetchData, 10000); 
-            } else if (password) {
-                Swal.fire({ icon: 'error', title: 'รหัสผ่านผิด' });
             }
         }
 
@@ -388,32 +329,12 @@
             try {
                 const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-                
                 const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
                 document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
-                    <button class="btn-edit" onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')">แก้ไข</button>
-                    <button class="btn-del" onclick="handleDel('${r[0]}')">ลบ</button>
+                    <button class="btn-edit" onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+                    <button class="btn-del" onclick="handleDel('${r[0]}')"><i class="fa-solid fa-trash"></i> ลบ</button>
                 </td></tr>`).join('');
-            } catch(e) { console.error("Sync Error"); }
-        }
-
-        async function handleDel(id) {
-            const result = await Swal.fire({
-                title: 'ยืนยันการลบ?',
-                text: "ข้อมูลพนักงานและใบหน้าจะถูกลบถาวร",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ff4d4d',
-                confirmButtonText: 'ยืนยันลบ',
-                cancelButtonText: 'ยกเลิก'
-            });
-
-            if (result.isConfirmed) {
-                Swal.fire({ title:'กำลังลบ...', didOpen:()=>Swal.showLoading() });
-                await fetch(scriptURL,{method:'POST', body:JSON.stringify({action:"deleteEmployee",id:id})});
-                Swal.fire('ลบแล้ว!', 'ข้อมูลพนักงานถูกนำออกจากระบบ', 'success');
-                fetchData();
-            }
+            } catch(e) { }
         }
 
         function toggleModal(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; }
@@ -425,42 +346,18 @@
         }
         function closeAdmin() { clearInterval(syncInt); document.getElementById('admin-panel').style.display='none'; document.getElementById('app-view').style.display='flex'; setPhase(1); }
         function openGPSModal() { toggleModal('modal-gps', true); }
-
-// ฟังก์ชันดึงพิกัดปัจจุบัน (ที่หายไป)
         function getCurrentLoc() {
             Swal.fire({ title: 'กำลังดึงพิกัด...', didOpen: () => Swal.showLoading() });
             navigator.geolocation.getCurrentPosition((pos) => {
                 document.getElementById('set-lat').value = pos.coords.latitude;
                 document.getElementById('set-lng').value = pos.coords.longitude;
                 Swal.fire({ icon: 'success', title: 'ดึงพิกัดสำเร็จ', timer: 1500, showConfirmButton: false });
-            }, (err) => {
-                Swal.fire({ icon: 'error', title: 'ดึงพิกัดล้มเหลว', text: 'กรุณาเปิด GPS และอนุญาตสิทธิ์' });
             });
         }
-
-        // ฟังก์ชันบันทึกค่า GPS พร้อม SweetAlert2
         async function saveSettings() {
-            const p = { 
-                action: "saveSettings", 
-                lat: parseFloat(document.getElementById('set-lat').value), 
-                lng: parseFloat(document.getElementById('set-lng').value), 
-                radius: parseInt(document.getElementById('set-radius').value) 
-            };
-
-            if (isNaN(p.lat) || isNaN(p.lng)) {
-                return Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกพิกัดให้ถูกต้อง' });
-            }
-
-            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-            
-            try {
-                await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
-                officeLoc = p; // อัปเดตค่าในตัวแปร local
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: 'พิกัดการลงเวลาถูกอัปเดตแล้ว' });
-                toggleModal('modal-gps', false);
-            } catch (e) {
-                Swal.fire({ icon: 'error', title: 'บันทึกล้มเหลว', text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' });
-            }
+            const p = { action: "saveSettings", lat: parseFloat(document.getElementById('set-lat').value), lng: parseFloat(document.getElementById('set-lng').value), radius: parseInt(document.getElementById('set-radius').value) };
+            await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
+            officeLoc = p; Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ' }); toggleModal('modal-gps', false);
         }
         
         initAI();
