@@ -58,7 +58,7 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); 
             color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px;
         }
-        .btn-main:disabled { background: #333; color: #777; cursor: not-allowed; opacity: 0.5; }
+        .btn-main:disabled { background: #333 !important; color: #777 !important; cursor: not-allowed; opacity: 0.7; transform: scale(0.98); }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
         .btn-edit { background: rgba(0, 242, 254, 0.1); border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
@@ -82,7 +82,7 @@
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; }
 
-        /* --- เพิ่มเติม: Real-time Sync Indicator --- */
+        /* --- Real-time Sync Indicator --- */
         .sync-indicator {
             display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--success);
             background: rgba(0, 255, 136, 0.05); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(0, 255, 136, 0.2);
@@ -235,7 +235,7 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzt4Invvt11wDdbdZV-XTqz3i53BX15w4z5hfuPpA4QT6v5WI6XHPJ_So8qQe3x7iMrZg/exec'; 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxqp6QPIwAG2sQM55IocReEg3SreNJ74UBT2i8elE9oNW0o1GWRXohx7PKs7Qi6QetHoA/exec'; 
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
@@ -264,10 +264,13 @@
                     canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
                     if(det) {
                         currentDesc = Array.from(det.descriptor);
-                        wrap.classList.add('detected'); btn.disabled = false;
+                        wrap.classList.add('detected'); 
+                        // คืนสถานะปุ่มถ้าตรวจพบหน้า (แต่ต้องไม่ติดสถานะส่งข้อมูล)
+                        if (btn.innerText !== "⏳ กำลังประมวลผล...") btn.disabled = false;
                         stat.innerText = "✅ ตรวจพบใบหน้าแล้ว!"; stat.style.color = "var(--success)";
                     } else {
-                        wrap.classList.remove('detected'); btn.disabled = true;
+                        wrap.classList.remove('detected'); 
+                        if (btn.innerText !== "⏳ กำลังประมวลผล...") btn.disabled = true;
                         stat.innerText = "🔍 กำลังตรวจหาใบหน้า..."; stat.style.color = "var(--warning)";
                     }
                 }, 400);
@@ -283,14 +286,46 @@
             if(n==1 || n==3) startCam(n);
         }
 
+        // --- แก้ไขจุดนี้: ป้องกันการกดรัว ---
         async function doAction(act) {
+            const btn = document.getElementById(act === 'checkin' ? 'btn1' : 'btn3');
+            
+            // ล็อคปุ่มทันที
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "⏳ กำลังประมวลผล...";
+            }
+
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const p = { action:act, faceDescriptor:currentDesc, firstName:document.getElementById('reg-f').value, lastName:document.getElementById('reg-l').value, position:document.getElementById('reg-p').value, lat:pos.coords.latitude, lng:pos.coords.longitude };
-                setPhase(4); document.getElementById('res-msg').innerText = "กำลังประมวลผล...";
-                const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
-                const txt = await res.text();
-                document.getElementById('res-msg').innerText = txt;
-                document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
+                
+                setPhase(4); 
+                document.getElementById('res-msg').innerText = "กำลังประมวลผลระบบ AI...";
+
+                try {
+                    const res = await fetch(scriptURL, { method:'POST', body:JSON.stringify(p) });
+                    const txt = await res.text();
+                    document.getElementById('res-msg').innerText = txt;
+                    document.getElementById('res-icon').innerText = txt.includes("✅") ? "✅" : "⚠️";
+                    
+                    // คืนค่าปุ่มเมื่อเสร็จสิ้น
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = (act === 'checkin' ? "ลงเวลาทำงาน" : "ยืนยันลงทะเบียน");
+                    }
+                } catch(e) {
+                    document.getElementById('res-msg').innerText = "❌ การเชื่อมต่อขัดข้อง";
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = "ลองใหม่อีกครั้ง";
+                    }
+                }
+            }, (err) => {
+                alert("กรุณาเปิด GPS เพื่อลงเวลาทำงาน");
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = (act === 'checkin' ? "ลงเวลาทำงาน" : "ยืนยันลงทะเบียน");
+                }
             });
         }
 
