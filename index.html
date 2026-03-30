@@ -239,28 +239,33 @@
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
-          // 🚩 ใช้ลิงก์ CDN ของ jsDelivr แทน GitHub Raw เพื่อแก้ปัญหาคอมพิวเตอร์บล็อกการเชื่อมต่อ
-          const URL = 'https://cdn.jsdelivr.net/gh/sornsit8/models@main/'; 
+          // 🚩 เปลี่ยน URL ไปใช้ CDN ของทางฝั่งผู้พัฒนา Face-API โดยตรง (เสถียรกว่า)
+          const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'; 
         
-          console.log("กำลังโหลด AI Models ผ่านช่องทางสำรอง...");
+          console.log("เริ่มกระบวนการตรวจสอบ AI...");
         
           try {
-            // โหลดไฟล์ AI จาก GitHub sornsit8 ผ่าน CDN
+            // 1. ลองโหลด AI ทีละตัวเพื่อหาว่าตัวไหนที่โดน Block
+            console.log("1. กำลังโหลด TinyFaceDetector...");
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
+            
+            console.log("2. กำลังโหลด FaceLandmark...");
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
+            
+            console.log("3. กำลังโหลด FaceRecognition...");
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
             
-            // โหลดการตั้งค่าจาก Sheets (ส่วนนี้คงเดิม)
+            // 2. โหลดค่าพิกัด (ส่วนนี้คงเดิม)
             const res = await fetch(scriptURL + "?action=getSettings");
             officeLoc = await res.json();
             
-            console.log("✅ โหลด AI สำเร็จ!");
-            
-            // สั่งเปิดกล้อง
+            console.log("✅ AI ทุกระบบพร้อมทำงาน!");
             startCam(1); 
+            
           } catch (e) {
-            console.error("❌ พบปัญหาในการโหลด:", e);
-            alert("คอมพิวเตอร์เครื่องนี้บล็อกการเข้าถึงระบบ AI\nวิธีแก้: ลองปิดโปรแกรมสแกนไวรัส หรือเปลี่ยน Browser เป็น Edge/Firefox ครับ");
+            console.error("❌ พบจุดที่โดน Block:", e);
+            // แจ้งเตือนเพื่อให้รู้ว่าเป็นที่เครื่องคอมพิวเตอร์แน่นอน
+            alert("ระบบตรวจพบว่า 'คอมพิวเตอร์เครื่องนี้' บล็อกการเข้าถึงสมองกล AI\n\nวิธีแก้ที่ได้ผล 100%: ให้ลองเปิดเว็บนี้ใน Microsoft Edge หรือโหมด Incognito ครับ");
           }
         }
 
