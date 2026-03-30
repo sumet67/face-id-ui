@@ -8,54 +8,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
 
     <style>
         :root { 
-            --primary: #00f2fe; 
-            --accent: #4facfe; 
-            --bg: #050a18; 
-            --card: rgba(255, 255, 255, 0.05);
-            --glass: rgba(15, 23, 42, 0.85);
-            --border: rgba(0, 242, 254, 0.3);
-            --success: #00ff88;
-            --error: #ff4d4d;
-            --warning: #ffbd2e;
-            --excel: #27ae60;
-            --pdf: #e74c3c;
+            --primary: #00f2fe; --accent: #4facfe; --bg: #050a18; 
+            --card: rgba(255, 255, 255, 0.05); --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(0, 242, 254, 0.3); --success: #00ff88; --error: #ff4d4d; --warning: #ffbd2e;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Kanit', sans-serif; }
         body { background: var(--bg); color: #fff; min-height: 100vh; overflow-x: hidden; }
 
-        /* --- CSS ปุ่ม Export ใหม่ --- */
-        .btn-excel { 
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); 
-            color: white; padding: 10px 20px; border-radius: 12px; border: none; 
-            cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; 
-            gap: 8px; transition: 0.3s; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
-        }
-        .btn-pdf { 
-            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); 
-            color: white; padding: 10px 20px; border-radius: 12px; border: none; 
-            cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; 
-            gap: 8px; margin-left: 10px; transition: 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2);
-        }
-        .btn-excel:hover, .btn-pdf:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        /* ปุ่ม Export */
+        .btn-excel { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 10px 18px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-pdf { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); color: white; padding: 10px 18px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; margin-left: 8px; transition: 0.3s; }
+        .btn-excel:hover, .btn-pdf:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
-        /* Print Settings */
-        @media print {
-            .sidebar, .btn-excel, .btn-pdf, .admin-float, .admin-float { display: none !important; }
-            .main-content { padding: 0 !important; width: 100% !important; }
-            body { background: white !important; color: black !important; }
-            table { width: 100% !important; border-collapse: collapse; color: black !important; }
-            th, td { border: 1px solid #000 !important; padding: 10px !important; }
-        }
-
+        /* Layout */
         .app-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .app-container { width: 350px; height: 600px; background: var(--card); backdrop-filter: blur(25px); border-radius: 40px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.6); position: relative; }
-        
         .phase { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; }
         .phase.active { display: flex; justify-content: center; }
         
@@ -66,43 +38,26 @@
         .laser { position: absolute; width: 100%; height: 2px; background: var(--primary); animation: scan 2s infinite ease-in-out; }
         @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
 
-        .scan-status { font-size: 0.9rem; margin-bottom: 15px; font-weight: 300; transition: 0.3s; }
-
-        input, select { 
-            width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; 
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); 
-            color: #fff; outline: none; transition: 0.3s;
-        }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0,242,254,0.2); }
-
-        .btn-main { 
-            width: 100%; padding: 16px; border: none; border-radius: 18px; 
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); 
-            color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px;
-        }
+        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; outline: none; }
+        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 18px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: #050a18; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .btn-main:disabled { background: #333; color: #777; cursor: not-allowed; opacity: 0.5; }
         .btn-sub { width: 100%; padding: 10px; background: none; color: #aaa; border: none; margin-top: 5px; cursor: pointer; }
 
-        /* Admin Layout */
+        /* Admin */
         #admin-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; }
         .sidebar { width: 260px; background: rgba(255,255,255,0.03); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 30px; }
         .menu-item { padding: 14px 18px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; color: #aaa; }
         .menu-item.active { background: rgba(0, 242, 254, 0.1); color: var(--primary); font-weight: 600; }
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        
         .table-container { background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; font-size: 20px; }
         
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0, 5, 15, 0.85); backdrop-filter: blur(12px); z-index:2000; align-items:center; justify-content:center; }
         .modal-box { background: var(--glass); width: 380px; padding: 30px; border-radius: 30px; border: 1px solid var(--border); text-align: center; }
-        
-        .admin-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color:#000; z-index: 500; font-size: 20px; }
 
-        .btn-edit { background: rgba(0, 242, 254, 0.1); border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .btn-edit:hover { background: var(--primary); color: #000; }
-        .btn-del { background: rgba(255, 77, 77, 0.1); border: 1px solid var(--error); color: var(--error); padding: 5px 12px; border-radius: 8px; cursor: pointer; margin-left: 5px; transition: 0.3s; }
-        .btn-del:hover { background: var(--error); color: #fff; }
+        @media print { .sidebar, .btn-excel, .btn-pdf, .admin-float { display: none !important; } .main-content { padding: 0 !important; } body { background: white; color: black; } table { width: 100%; color: black; } th, td { border: 1px solid #000; padding: 10px; } }
     </style>
 </head>
 <body>
@@ -115,7 +70,7 @@
                     <video id="vid1" autoplay muted playsinline></video>
                     <div class="laser"></div>
                 </div>
-                <p id="stat1" class="scan-status" style="color:var(--warning);">🔍 กำลังตรวจหาใบหน้า...</p>
+                <p id="stat1" style="color:var(--warning); font-size: 0.9rem; margin-bottom:15px;">🔍 กำลังตรวจหาใบหน้า...</p>
                 <button class="btn-main" id="btn1" onclick="doAction('checkin')" disabled>ลงเวลาทำงาน</button>
                 <button class="btn-sub" onclick="setPhase(2)">ลงทะเบียนพนักงาน</button>
             </div>
@@ -125,7 +80,6 @@
                 <div style="width:100%; margin-top:20px;">
                     <input type="text" id="reg-f" placeholder="ชื่อจริง">
                     <input type="text" id="reg-l" placeholder="นามสกุล">
-                    <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary); margin-bottom:5px;">ตำแหน่ง</label>
                     <select id="reg-p">
                         <option value="ผู้บริหาร">ผู้บริหาร</option>
                         <option value="ครู">ครู</option>
@@ -142,45 +96,10 @@
                     <video id="vid3" autoplay muted playsinline></video>
                     <div class="laser"></div>
                 </div>
-                <p id="stat3" class="scan-status" style="color:var(--warning);">🔍 กำลังตรวจหาใบหน้า...</p>
+                <p id="stat3" style="color:var(--warning); font-size: 0.9rem; margin-bottom:15px;">🔍 กำลังตรวจหาใบหน้า...</p>
                 <button class="btn-main" id="btn3" onclick="doAction('register')" disabled>ยืนยันลงทะเบียน</button>
                 <button class="btn-sub" onclick="setPhase(2)">ย้อนกลับ</button>
             </div>
-        </div>
-    </div>
-
-    <div id="modal-edit" class="modal-overlay">
-        <div class="modal-box">
-            <h3>📝 แก้ไขพนักงาน</h3>
-            <input type="hidden" id="edit-id">
-            <input type="text" id="edit-f" placeholder="ชื่อจริง">
-            <input type="text" id="edit-l" placeholder="นามสกุล">
-            <select id="edit-p">
-                <option value="ผู้บริหาร">ผู้บริหาร</option>
-                <option value="ครู">ครู</option>
-                <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
-            </select>
-            <button class="btn-main" onclick="submitEdit()">อัปเดตข้อมูล</button>
-            <button class="btn-sub" onclick="toggleModal('modal-edit', false)">ยกเลิก</button>
-        </div>
-    </div>
-
-    <div id="modal-gps" class="modal-overlay">
-        <div class="modal-box" style="width: 420px;"> 
-            <h3>📍 ตั้งค่าพิกัดสถานที่</h3>
-            <div style="text-align: left; background: rgba(0,242,254,0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--border);">
-                <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 5px;"><strong>💡 วิธีการตั้งค่า:</strong></p>
-                <ul style="font-size: 0.8rem; color: #ccc; padding-left: 20px;">
-                    <li>ระบุค่า <b>Latitude / Longitude</b></li>
-                    <li><b>Radius:</b> รัศมี (เมตร) ที่อนุญาต (แนะนำ 50-100)</li>
-                </ul>
-            </div>
-            <input type="number" id="set-lat" step="any" placeholder="Latitude">
-            <input type="number" id="set-lng" step="any" placeholder="Longitude">
-            <input type="number" id="set-radius" placeholder="Radius (Meters)">
-            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin-bottom:20px;" onclick="getCurrentLoc()">🎯 ใช้พิกัดปัจจุบัน</div>
-            <button class="btn-main" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
-            <button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button>
         </div>
     </div>
 
@@ -190,16 +109,15 @@
                 <h2 style="color:var(--primary); margin-bottom:30px;">ADMIN</h2>
                 <div class="menu-item active" id="m-report" onclick="switchTab('tab-report')"><i class="fa-solid fa-chart-line"></i> รายงานวันนี้</div>
                 <div class="menu-item" id="m-emp" onclick="switchTab('tab-emp')"><i class="fa-solid fa-users"></i> รายชื่อพนักงาน</div>
-                <div class="menu-item" onclick="openGPSModal()"><i class="fa-solid fa-location-dot"></i> ตั้งค่า GPS</div>
                 <div class="menu-item" style="margin-top:auto; color:var(--error);" onclick="closeAdmin()"><i class="fa-solid fa-door-open"></i> ออกจากระบบ</div>
             </div>
             <div class="main-content">
                 <div id="tab-report" class="tab-content">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h3>รายงานเข้า-ออกงาน</h3>
                         <div>
-                            <button class="btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> ส่งออก Excel</button>
-                            <button class="btn-pdf" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> พิมพ์ PDF</button>
+                            <button class="btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                            <button class="btn-pdf" onclick="window.print()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                         </div>
                     </div>
                     <div class="table-container">
@@ -225,25 +143,22 @@
     <div class="admin-float" onclick="openAdminLogin()">📊</div>
 
     <script>
-const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4oWWmoWttCQl2XroKcLUnSPRjfxusXyYD-787Gm0B5GAshuug/exec'; 
-        let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4oWWmoWttCQl2XroKcLUnSPRjfxusXyYD-787Gm0B5GAshuug/exec'; 
+        let currentDesc = null, detectInt = null, syncInt = null;
 
-        // --- 1. การจัดการกล้องและ AI ---
+        // 1. Initial AI
         async function initAI() {
-            Swal.fire({ title: 'กำลังเตรียมความพร้อม...', html: 'โหลด AI กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ title: 'กำลังโหลดระบบ AI...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'; 
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
                 await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
                 await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
-                const res = await fetch(scriptURL + "?action=getSettings");
-                officeLoc = await res.json();
                 Swal.close(); startCam(1); 
-            } catch (e) {
-                Swal.fire({ icon: 'error', title: 'โหลด AI ไม่สำเร็จ' });
-            }
+            } catch (e) { Swal.fire({ icon: 'error', title: 'AI Load Error' }); }
         }
 
+        // 2. Camera Logic
         async function startCam(p) {
             const vid = document.getElementById('vid'+p), wrap = document.getElementById('wrapper'+p);
             const btn = document.getElementById('btn'+p), stat = document.getElementById('stat'+p);
@@ -260,51 +175,57 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4
                         if(det) {
                             currentDesc = Array.from(det.descriptor);
                             wrap.classList.add('detected'); btn.disabled = false;
-                            stat.innerText = "✅ ตรวจพบใบหน้าแล้ว!"; stat.style.color = "var(--success)";
+                            stat.innerText = "✅ ตรวจพบใบหน้าแล้ว!"; stat.style.color = "#00ff88";
                         } else {
                             wrap.classList.remove('detected'); btn.disabled = true;
-                            stat.innerText = "🔍 กำลังตรวจหาใบหน้า..."; stat.style.color = "var(--warning)";
+                            stat.innerText = "🔍 กำลังตรวจหาใบหน้า..."; stat.style.color = "#ffbd2e";
                         }
                     }, 400);
                 };
-            } catch(err) {
-                Swal.fire({ icon:'warning', title:'ไม่พบกล้อง' });
-            }
+            } catch(err) { Swal.fire({ icon:'warning', title:'ไม่พบกล้อง' }); }
         }
 
+        // 3. Phase Control (แก้จุดต่อไปไม่ได้)
         function setPhase(n) {
-            clearInterval(detectInt);
+            if (detectInt) clearInterval(detectInt);
             document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('video').forEach(v => { if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); });
             document.querySelectorAll('canvas').forEach(c => c.remove());
-            document.getElementById('phase'+n).classList.add('active');
-            if(n==1 || n==3) startCam(n);
+            
+            const target = document.getElementById('phase' + n);
+            if(target) {
+                target.classList.add('active');
+                if(n === 1 || n === 3) setTimeout(() => startCam(n), 200);
+            }
         }
 
+        function validateRegInfo() {
+            const f = document.getElementById('reg-f').value.trim();
+            const l = document.getElementById('reg-l').value.trim();
+            if(!f || !l) return Swal.fire({ icon:'error', title:'กรุณากรอกข้อมูลให้ครบ' });
+            setPhase(3);
+        }
+
+        // 4. Action & Sync
         async function doAction(act) {
-            Swal.fire({ title: 'กำลังประมวลผล...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const p = { action: act, faceDescriptor: currentDesc, firstName: document.getElementById('reg-f').value, lastName: document.getElementById('reg-l').value, position: document.getElementById('reg-p').value, lat: pos.coords.latitude, lng: pos.coords.longitude };
                 try {
                     const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
                     const txt = await res.text();
-                    Swal.close();
-                    if (txt.includes("✅")) {
-                        Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', html: txt.replace(/\n/g, '<br>'), confirmButtonText: 'ตกลง' }).then(() => {
-                            if (act === 'register') { document.getElementById('reg-f').value = ''; document.getElementById('reg-l').value = ''; }
-                            setPhase(1);
-                        });
-                    } else {
-                        Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', html: txt.replace(/\n/g, '<br>') }).then(() => setPhase(1));
-                    }
-                } catch (e) { Swal.fire({ icon: 'error', title: 'ผิดพลาด' }); }
-            }, (err) => { Swal.fire({ icon: 'error', title: 'GPS Error' }); });
+                    Swal.fire({ icon: txt.includes("✅")?'success':'warning', title: 'ผลการทำงาน', html: txt.replace(/\n/g, '<br>') }).then(() => {
+                        if(act === 'register') { document.getElementById('reg-f').value=''; document.getElementById('reg-l').value=''; }
+                        setPhase(1);
+                    });
+                } catch (e) { Swal.fire({ icon: 'error', title: 'Connection Error' }); }
+            }, () => Swal.fire({ icon: 'error', title: 'GPS Error' }));
         }
 
-        // --- 2. ส่วนงาน Admin & Real-time Sync ---
+        // 5. Admin & Real-time (แก้เรียลไทม์หาย)
         async function openAdminLogin() {
-            const { value: password } = await Swal.fire({ title: 'รหัสผ่านแอดมิน', input: 'password', inputPlaceholder: 'ใส่รหัสผ่าน 4 หลัก', inputAttributes: { maxlength: 4 }, showCancelButton: true });
-            if (password === "1234") {
+            const { value: pass } = await Swal.fire({ title: 'Admin Password', input: 'password', showCancelButton: true });
+            if (pass === "1234") {
                 document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none'; 
                 fetchData();
@@ -315,36 +236,24 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4
 
         async function fetchData() {
             try {
-                // ดึง Logs
                 const resL = await fetch(scriptURL + "?action=getLogs");
                 const logs = await resL.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
                 
-                // ดึงพนักงาน
                 const resE = await fetch(scriptURL + "?action=getEmployees");
                 const emps = await resE.json();
                 document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
-                    <button class="btn-edit" onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
-                    <button class="btn-del" onclick="handleDel('${r[0]}')"><i class="fa-solid fa-trash"></i> ลบ</button>
+                    <button style="color:cyan; background:none; border:1px solid cyan; padding:4px 8px; border-radius:5px; cursor:pointer;" onclick="alert('ID: '+ '${r[0]}')">ตรวจสอบ</button>
                 </td></tr>`).join('');
-                console.log("Data Synced: " + new Date().toLocaleTimeString());
-            } catch(e) { console.log("Sync Error"); }
+            } catch(e) { console.log("Sync..."); }
         }
 
-        // --- 3. ฟังก์ชันส่งออก Excel ---
         function exportToExcel() {
-            const table = document.querySelector("#tab-report table");
-            const wb = XLSX.utils.table_to_book(table, { sheet: "รายงานการลงเวลา" });
-            XLSX.writeFile(wb, `Report_FaceID_${new Date().toLocaleDateString()}.xlsx`);
+            const wb = XLSX.utils.table_to_book(document.querySelector("#tab-report table"));
+            XLSX.writeFile(wb, "FaceID_Report.xlsx");
         }
 
-        function closeAdmin() { 
-            clearInterval(syncInt); 
-            document.getElementById('admin-panel').style.display='none'; 
-            document.getElementById('app-view').style.display='flex'; 
-            setPhase(1); 
-        }
-
+        function closeAdmin() { clearInterval(syncInt); document.getElementById('admin-panel').style.display='none'; document.getElementById('app-view').style.display='flex'; setPhase(1); }
         function switchTab(id) { 
             document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
             document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
