@@ -225,9 +225,10 @@
     <div class="admin-float" onclick="openAdminLogin()">📊</div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4oWWmoWttCQl2XroKcLUnSPRjfxusXyYD-787Gm0B5GAshuug/exec'; 
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwi24YkNuS5NPFTWC_Co4oWWmoWttCQl2XroKcLUnSPRjfxusXyYD-787Gm0B5GAshuug/exec'; 
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
+        // --- 1. การจัดการกล้องและ AI ---
         async function initAI() {
             Swal.fire({ title: 'กำลังเตรียมความพร้อม...', html: 'โหลด AI กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'; 
@@ -255,7 +256,7 @@
                     faceapi.matchDimensions(canvas, { width: vid.offsetWidth, height: vid.offsetHeight });
                     detectInt = setInterval(async () => {
                         const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                        canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+                        if(canvas.getContext('2d')) canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
                         if(det) {
                             currentDesc = Array.from(det.descriptor);
                             wrap.classList.add('detected'); btn.disabled = false;
@@ -280,17 +281,8 @@
             if(n==1 || n==3) startCam(n);
         }
 
-        function validateRegInfo() {
-            if(!document.getElementById('reg-f').value || !document.getElementById('reg-l').value) {
-                return Swal.fire({ icon:'error', title:'ข้อมูลไม่ครบ' });
-            }
-            setPhase(3);
-        }
-
-        // --- แก้ไข Logic กลับหน้าแรกที่นี่ ---
         async function doAction(act) {
             Swal.fire({ title: 'กำลังประมวลผล...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const p = { action: act, faceDescriptor: currentDesc, firstName: document.getElementById('reg-f').value, lastName: document.getElementById('reg-l').value, position: document.getElementById('reg-p').value, lat: pos.coords.latitude, lng: pos.coords.longitude };
                 try {
@@ -298,15 +290,9 @@
                     const txt = await res.text();
                     Swal.close();
                     if (txt.includes("✅")) {
-                        Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', html: txt.replace(/\n/g, '<br>'), confirmButtonText: 'ตกลง', allowOutsideClick: false })
-                        .then((result) => {
-                            if (result.isConfirmed) {
-                                if (act === 'register') {
-                                    document.getElementById('reg-f').value = '';
-                                    document.getElementById('reg-l').value = '';
-                                }
-                                setPhase(1); // กลับหน้าแรกแน่นอน
-                            }
+                        Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', html: txt.replace(/\n/g, '<br>'), confirmButtonText: 'ตกลง' }).then(() => {
+                            if (act === 'register') { document.getElementById('reg-f').value = ''; document.getElementById('reg-l').value = ''; }
+                            setPhase(1);
                         });
                     } else {
                         Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', html: txt.replace(/\n/g, '<br>') }).then(() => setPhase(1));
@@ -315,51 +301,57 @@
             }, (err) => { Swal.fire({ icon: 'error', title: 'GPS Error' }); });
         }
 
+        // --- 2. ส่วนงาน Admin & Real-time Sync ---
         async function openAdminLogin() {
             const { value: password } = await Swal.fire({ title: 'รหัสผ่านแอดมิน', input: 'password', inputPlaceholder: 'ใส่รหัสผ่าน 4 หลัก', inputAttributes: { maxlength: 4 }, showCancelButton: true });
             if (password === "1234") {
                 document.getElementById('admin-panel').style.display='block';
                 document.getElementById('app-view').style.display='none'; 
                 fetchData();
-                syncInt = setInterval(fetchData, 10000); 
+                if(syncInt) clearInterval(syncInt);
+                syncInt = setInterval(fetchData, 5000); // อัปเดตทุก 5 วินาที
             }
         }
 
         async function fetchData() {
             try {
-                const resL = await fetch(scriptURL + "?action=getLogs"), logs = await resL.json();
+                // ดึง Logs
+                const resL = await fetch(scriptURL + "?action=getLogs");
+                const logs = await resL.json();
                 document.getElementById('logBody').innerHTML = logs.reverse().map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-                const resE = await fetch(scriptURL + "?action=getEmployees"), emps = await resE.json();
+                
+                // ดึงพนักงาน
+                const resE = await fetch(scriptURL + "?action=getEmployees");
+                const emps = await resE.json();
                 document.getElementById('empBody').innerHTML = emps.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>
                     <button class="btn-edit" onclick="openEdit('${r[0]}','${r[1]}','${r[2]}','${r[3]}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
                     <button class="btn-del" onclick="handleDel('${r[0]}')"><i class="fa-solid fa-trash"></i> ลบ</button>
                 </td></tr>`).join('');
-            } catch(e) { }
+                console.log("Data Synced: " + new Date().toLocaleTimeString());
+            } catch(e) { console.log("Sync Error"); }
         }
 
-        function toggleModal(id, s) { document.getElementById(id).style.display = s ? 'flex' : 'none'; }
+        // --- 3. ฟังก์ชันส่งออก Excel ---
+        function exportToExcel() {
+            const table = document.querySelector("#tab-report table");
+            const wb = XLSX.utils.table_to_book(table, { sheet: "รายงานการลงเวลา" });
+            XLSX.writeFile(wb, `Report_FaceID_${new Date().toLocaleDateString()}.xlsx`);
+        }
+
+        function closeAdmin() { 
+            clearInterval(syncInt); 
+            document.getElementById('admin-panel').style.display='none'; 
+            document.getElementById('app-view').style.display='flex'; 
+            setPhase(1); 
+        }
+
         function switchTab(id) { 
             document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
             document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
             document.getElementById(id).style.display='block'; 
             document.getElementById('m-'+id.split('-')[1]).classList.add('active');
         }
-        function closeAdmin() { clearInterval(syncInt); document.getElementById('admin-panel').style.display='none'; document.getElementById('app-view').style.display='flex'; setPhase(1); }
-        function openGPSModal() { toggleModal('modal-gps', true); }
-        function getCurrentLoc() {
-            Swal.fire({ title: 'กำลังดึงพิกัด...', didOpen: () => Swal.showLoading() });
-            navigator.geolocation.getCurrentPosition((pos) => {
-                document.getElementById('set-lat').value = pos.coords.latitude;
-                document.getElementById('set-lng').value = pos.coords.longitude;
-                Swal.fire({ icon: 'success', title: 'ดึงพิกัดสำเร็จ', timer: 1500, showConfirmButton: false });
-            });
-        }
-        async function saveSettings() {
-            const p = { action: "saveSettings", lat: parseFloat(document.getElementById('set-lat').value), lng: parseFloat(document.getElementById('set-lng').value), radius: parseInt(document.getElementById('set-radius').value) };
-            await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
-            officeLoc = p; Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ' }); toggleModal('modal-gps', false);
-        }
-        
+
         initAI();
     </script>
 </body>
