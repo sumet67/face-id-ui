@@ -239,29 +239,28 @@
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
-          // 🚩 ใช้ลิงก์นี้แทนอันเดิม เพื่อแก้ปัญหาคอมพิวเตอร์บล็อกไฟล์ (CORS Error)
-          // ลิงก์นี้จะดึงไฟล์จาก sornsit8/models ใน GitHub ของคุณผ่านระบบส่งไฟล์ที่เสถียรที่สุด
+          // 🚩 ใช้ลิงก์ CDN ของ jsDelivr แทน GitHub Raw เพื่อแก้ปัญหาคอมพิวเตอร์บล็อกการเชื่อมต่อ
           const URL = 'https://cdn.jsdelivr.net/gh/sornsit8/models@main/'; 
         
-          console.log("กำลังโหลด AI Models...");
+          console.log("กำลังโหลด AI Models ผ่านช่องทางสำรอง...");
         
           try {
-            // โหลด Weights จาก GitHub ของคุณ
+            // โหลดไฟล์ AI จาก GitHub sornsit8 ผ่าน CDN
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
             
-            // โหลดการตั้งค่าพิกัดจาก Sheets (ส่วนนี้คงเดิม)
+            // โหลดการตั้งค่าจาก Sheets (ส่วนนี้คงเดิม)
             const res = await fetch(scriptURL + "?action=getSettings");
             officeLoc = await res.json();
             
-            console.log("✅ AI Models Loaded Successfully!");
+            console.log("✅ โหลด AI สำเร็จ!");
             
-            // เปิดกล้องทันที
+            // สั่งเปิดกล้อง
             startCam(1); 
           } catch (e) {
-            console.error("❌ AI Load Error: ", e);
-            alert("ไม่สามารถโหลดระบบ AI ได้ในเครื่องนี้: " + e.message);
+            console.error("❌ พบปัญหาในการโหลด:", e);
+            alert("คอมพิวเตอร์เครื่องนี้บล็อกการเข้าถึงระบบ AI\nวิธีแก้: ลองปิดโปรแกรมสแกนไวรัส หรือเปลี่ยน Browser เป็น Edge/Firefox ครับ");
           }
         }
 
