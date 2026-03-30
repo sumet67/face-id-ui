@@ -150,14 +150,33 @@
         </div>
     </div>
 
-    <div id="modal-gps" class="modal-overlay">
-        <div class="modal-box" style="width: 400px;">
-            <h3>📍 ตั้งค่าพิกัด GPS</h3>
-            <input type="number" id="set-lat" step="any" placeholder="Latitude">
-            <input type="number" id="set-lng" step="any" placeholder="Longitude">
-            <input type="number" id="set-radius" placeholder="รัศมี (เมตร)">
-            <button class="btn-main" onclick="saveSettings()">💾 บันทึก</button>
-            <button class="btn-sub" onclick="toggleModal('modal-gps', false)">ปิด</button>
+<div id="modal-gps" class="modal-overlay">
+        <div class="modal-box" style="width: 420px;"> 
+            <h3>📍 ตั้งค่าพิกัดสถานที่</h3>
+            <div style="text-align: left; background: rgba(0,242,254,0.05); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--border);">
+                <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 5px;"><strong>💡 วิธีการตั้งค่า:</strong></p>
+                <ul style="font-size: 0.8rem; color: #ccc; padding-left: 20px;">
+                    <li>ระบุค่า <b>Latitude / Longitude</b> ของสถานที่ทำงาน</li>
+                    <li><b>Radius:</b> รัศมี (เมตร) ที่อนุญาตให้สแกนได้ (แนะนำ 50-100 เมตร)</li>
+                    <li>หากอยู่ ณ สถานที่จริง สามารถกดปุ่มด้านล่างเพื่อดึงพิกัดอัตโนมัติได้</li>
+                </ul>
+            </div>
+            
+            <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary);">Latitude (ละติจูด)</label>
+            <input type="number" id="set-lat" step="any" placeholder="ตัวอย่าง: 13.7563">
+            
+            <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary);">Longitude (ลองจิจูด)</label>
+            <input type="number" id="set-lng" step="any" placeholder="ตัวอย่าง: 100.5018">
+            
+            <label style="display:block; text-align:left; font-size:0.8rem; color:var(--primary);">Radius (รัศมีเป็นเมตร)</label>
+            <input type="number" id="set-radius" placeholder="ระบุตัวเลข เช่น 100">
+            
+            <div style="color:var(--primary); cursor:pointer; font-size:0.9rem; margin: 10px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 5px;" onclick="getCurrentLoc()">
+                🎯 <span>ใช้พิกัดปัจจุบันจากมือถือของคุณ</span>
+            </div>
+            
+            <button class="btn-main" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
+            <button class="btn-sub" onclick="toggleModal('modal-gps', false)">ยกเลิก</button>
         </div>
     </div>
 
@@ -381,6 +400,43 @@
         }
         function closeAdmin() { clearInterval(syncInt); document.getElementById('admin-panel').style.display='none'; document.getElementById('app-view').style.display='flex'; setPhase(1); }
         function openGPSModal() { toggleModal('modal-gps', true); }
+
+// ฟังก์ชันดึงพิกัดปัจจุบัน (ที่หายไป)
+        function getCurrentLoc() {
+            Swal.fire({ title: 'กำลังดึงพิกัด...', didOpen: () => Swal.showLoading() });
+            navigator.geolocation.getCurrentPosition((pos) => {
+                document.getElementById('set-lat').value = pos.coords.latitude;
+                document.getElementById('set-lng').value = pos.coords.longitude;
+                Swal.fire({ icon: 'success', title: 'ดึงพิกัดสำเร็จ', timer: 1500, showConfirmButton: false });
+            }, (err) => {
+                Swal.fire({ icon: 'error', title: 'ดึงพิกัดล้มเหลว', text: 'กรุณาเปิด GPS และอนุญาตสิทธิ์' });
+            });
+        }
+
+        // ฟังก์ชันบันทึกค่า GPS พร้อม SweetAlert2
+        async function saveSettings() {
+            const p = { 
+                action: "saveSettings", 
+                lat: parseFloat(document.getElementById('set-lat').value), 
+                lng: parseFloat(document.getElementById('set-lng').value), 
+                radius: parseInt(document.getElementById('set-radius').value) 
+            };
+
+            if (isNaN(p.lat) || isNaN(p.lng)) {
+                return Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกพิกัดให้ถูกต้อง' });
+            }
+
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            
+            try {
+                await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
+                officeLoc = p; // อัปเดตค่าในตัวแปร local
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: 'พิกัดการลงเวลาถูกอัปเดตแล้ว' });
+                toggleModal('modal-gps', false);
+            } catch (e) {
+                Swal.fire({ icon: 'error', title: 'บันทึกล้มเหลว', text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' });
+            }
+        }
         
         initAI();
     </script>
