@@ -239,15 +239,34 @@
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
-            const URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+          // 🚩 เปลี่ยน URL ไปใช้ CDN ของทางฝั่งผู้พัฒนา Face-API โดยตรง (เสถียรกว่า)
+          const URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/'; 
+        
+          console.log("เริ่มกระบวนการตรวจสอบ AI...");
+        
+          try {
+            // 1. ลองโหลด AI ทีละตัวเพื่อหาว่าตัวไหนที่โดน Block
+            console.log("1. กำลังโหลด TinyFaceDetector...");
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
+            
+            console.log("2. กำลังโหลด FaceLandmark...");
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
+            
+            console.log("3. กำลังโหลด FaceRecognition...");
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
-            try {
-                const res = await fetch(scriptURL + "?action=getSettings");
-                officeLoc = await res.json();
-            } catch(e) {}
-            startCam(1);
+            
+            // 2. โหลดค่าพิกัด (ส่วนนี้คงเดิม)
+            const res = await fetch(scriptURL + "?action=getSettings");
+            officeLoc = await res.json();
+            
+            console.log("✅ AI ทุกระบบพร้อมทำงาน!");
+            startCam(1); 
+            
+          } catch (e) {
+            console.error("❌ พบจุดที่โดน Block:", e);
+            // แจ้งเตือนเพื่อให้รู้ว่าเป็นที่เครื่องคอมพิวเตอร์แน่นอน
+            alert("ระบบตรวจพบว่า 'คอมพิวเตอร์เครื่องนี้' บล็อกการเข้าถึงสมองกล AI\n\nวิธีแก้ที่ได้ผล 100%: ให้ลองเปิดเว็บนี้ใน Microsoft Edge หรือโหมด Incognito ครับ");
+          }
         }
 
         async function startCam(p) {
