@@ -239,19 +239,19 @@
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
-          // 🚩 แก้ไขจุดเดียว: เปลี่ยน URL ให้ชี้ไปที่ GitHub ของคุณ (sornsit8/models)
-          // ใช้ raw.githubusercontent.com เพื่อให้ Browser ดึงไฟล์ได้โดยตรง
-          const URL = 'https://github.com/sumet67/face-id-ui/tree/main/models'; 
+          // 🚩 เปลี่ยน URL มาใช้ jsDelivr เพื่อแก้ปัญหา CORS (โดนบล็อก)
+          // ลิงก์นี้จะชี้ไปที่ User: sornsit8, Repo: models, Branch: main
+          const URL = 'https://cdn.jsdelivr.net/gh/sornsit8/models@main/'; 
         
-          console.log("กำลังโหลด AI Models จาก GitHub ของคุณ: " + URL);
+          console.log("กำลังโหลด AI Models ผ่านระบบ CDN: " + URL);
         
           try {
-            // โหลด Weights จาก URL ใหม่ที่คุณ save ไว้
+            // โหลด Weights จาก GitHub ของคุณผ่านทางด่วน (CDN)
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
             
-            // โหลดการตั้งค่าพิกัด (ส่วนนี้คงเดิม)
+            // โหลดการตั้งค่าพิกัดจาก Google Sheets (ส่วนนี้คงเดิม)
             const res = await fetch(scriptURL + "?action=getSettings");
             officeLoc = await res.json();
             
@@ -261,12 +261,7 @@
             startCam(1); 
           } catch (e) {
             console.error("❌ AI Load Error: ", e);
-            // แจ้งเตือนสาเหตุที่ละเอียดขึ้นใน Console
-            if (e.message.includes("Failed to fetch")) {
-                alert("ไม่สามารถโหลด AI ได้: Browser บล็อกการเชื่อมต่อกับ GitHub Raw\nลองตรวจสอบ Browser Extension ที่เกี่ยวกับการบล็อก Ad หรือลองเปลี่ยน Browser ดูครับ");
-            } else {
-                alert("ไม่สามารถโหลดระบบ AI ได้ กรุณาตรวจสอบลิงก์ GitHub: " + e.message);
-            }
+            alert("ไม่สามารถโหลดระบบ AI ได้: " + e.message + "\nตรวจสอบว่าไฟล์ใน GitHub ชื่อตรงกับที่ระบบต้องการหรือไม่");
           }
         }
 
