@@ -239,15 +239,35 @@
         let currentDesc = null, detectInt = null, officeLoc = {lat:0, lng:0, radius:100}, syncInt = null;
 
         async function initAI() {
-            const URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+          // 🚩 แก้ไขจุดเดียว: เปลี่ยน URL ให้ชี้ไปที่ GitHub ของคุณ (sornsit8/models)
+          // ใช้ raw.githubusercontent.com เพื่อให้ Browser ดึงไฟล์ได้โดยตรง
+          const URL = 'https://raw.githubusercontent.com/sornsit8/models/main/'; 
+        
+          console.log("กำลังโหลด AI Models จาก GitHub ของคุณ: " + URL);
+        
+          try {
+            // โหลด Weights จาก URL ใหม่ที่คุณ save ไว้
             await faceapi.nets.tinyFaceDetector.loadFromUri(URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(URL);
-            try {
-                const res = await fetch(scriptURL + "?action=getSettings");
-                officeLoc = await res.json();
-            } catch(e) {}
-            startCam(1);
+            
+            // โหลดการตั้งค่าพิกัด (ส่วนนี้คงเดิม)
+            const res = await fetch(scriptURL + "?action=getSettings");
+            officeLoc = await res.json();
+            
+            console.log("✅ AI Models Loaded Successfully!");
+            
+            // เปิดกล้องหลังจากโหลด AI เสร็จ
+            startCam(1); 
+          } catch (e) {
+            console.error("❌ AI Load Error: ", e);
+            // แจ้งเตือนสาเหตุที่ละเอียดขึ้นใน Console
+            if (e.message.includes("Failed to fetch")) {
+                alert("ไม่สามารถโหลด AI ได้: Browser บล็อกการเชื่อมต่อกับ GitHub Raw\nลองตรวจสอบ Browser Extension ที่เกี่ยวกับการบล็อก Ad หรือลองเปลี่ยน Browser ดูครับ");
+            } else {
+                alert("ไม่สามารถโหลดระบบ AI ได้ กรุณาตรวจสอบลิงก์ GitHub: " + e.message);
+            }
+          }
         }
 
         async function startCam(p) {
