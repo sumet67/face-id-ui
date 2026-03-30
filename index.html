@@ -301,11 +301,11 @@
         }
 
         // 2. Action with Swal Result
-    async function doAction(act) {
-            // แสดง Loading ระหว่างประมวลผล
+async function doAction(act) {
+            // 1. แสดง Loading ทันทีที่กดปุ่ม
             Swal.fire({
-                title: 'กำลังตรวจสอบ...',
-                text: 'กรุณารอสักครู่ขณะประมวลผลใบหน้าและพิกัด',
+                title: 'กำลังประมวลผล...',
+                text: 'กรุณารอสักครู่ ขณะตรวจสอบใบหน้าและพิกัด',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -325,36 +325,43 @@
                     const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
                     const txt = await res.text();
                     
-                    // ปิด Loading ก่อนแสดงผลลัพธ์
+                    // 2. ปิด Loading ก่อนแสดงผลลัพธ์สำเร็จ/ไม่สำเร็จ
                     Swal.close();
                     
                     if (txt.includes("✅")) {
-                        // ใช้ .then() เพื่อรอให้คนกด "ตกลง" ก่อนถึงจะรันโค้ดข้างใน
                         Swal.fire({ 
                             icon: 'success', 
                             title: 'บันทึกสำเร็จ', 
                             html: txt.replace(/\n/g, '<br>'),
-                            confirmButtonText: 'ตกลง'
+                            confirmButtonText: 'กลับหน้าหลัก',
+                            allowOutsideClick: false
                         }).then((result) => {
+                            // 3. เมื่อกดปุ่ม "กลับหน้าหลัก" ให้รันโค้ดเปลี่ยนหน้าตรงนี้
                             if (result.isConfirmed) {
-                                // ล้างค่าข้อมูลถ้าเป็นการลงทะเบียน
                                 if (act === 'register') {
                                     document.getElementById('reg-f').value = '';
                                     document.getElementById('reg-l').value = '';
                                 }
-                                // ดีดกลับหน้าแรกแน่นอนหลังจากกด OK
-                                setPhase(1);
+                                // บังคับกลับหน้า Phase 1 (หน้าสแกนหลัก)
+                                setPhase(1); 
                             }
                         });
-                        
                     } else {
-                        Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', html: txt.replace(/\n/g, '<br>') });
+                        // กรณี Error จาก Server (เช่น อยู่นอกพื้นที่ หรือไม่พบใบหน้า)
+                        Swal.fire({ 
+                            icon: 'warning', 
+                            title: 'ไม่สามารถบันทึกได้', 
+                            html: txt.replace(/\n/g, '<br>'),
+                            confirmButtonText: 'ลองใหม่'
+                        }).then(() => {
+                            setPhase(1); // กลับไปเริ่มสแกนใหม่
+                        });
                     }
                 } catch (e) {
-                    Swal.fire({ icon: 'error', title: 'เชื่อมต่อผิดพลาด', text: 'ไม่สามารถส่งข้อมูลไปยัง Server ได้' });
+                    Swal.fire({ icon: 'error', title: 'การเชื่อมต่อล้มเหลว', text: 'กรุณาเช็คอินเทอร์เน็ตของท่าน' });
                 }
-            }, () => {
-                Swal.fire({ icon: 'error', title: 'GPS Error', text: 'กรุณาเปิด GPS ก่อนสแกน' });
+            }, (err) => {
+                Swal.fire({ icon: 'error', title: 'GPS Error', text: 'ไม่สามารถดึงพิกัดได้ กรุณาเปิด Location' });
             });
         }
 
