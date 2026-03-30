@@ -302,6 +302,7 @@
 
         // 2. Action with Swal Result
     async function doAction(act) {
+            // แสดง Loading ระหว่างประมวลผล
             Swal.fire({
                 title: 'กำลังตรวจสอบ...',
                 text: 'กรุณารอสักครู่ขณะประมวลผลใบหน้าและพิกัด',
@@ -323,22 +324,28 @@
                 try {
                     const res = await fetch(scriptURL, { method: 'POST', body: JSON.stringify(p) });
                     const txt = await res.text();
+                    
+                    // ปิด Loading ก่อนแสดงผลลัพธ์
                     Swal.close();
                     
                     if (txt.includes("✅")) {
-                        await Swal.fire({ 
+                        // ใช้ .then() เพื่อรอให้คนกด "ตกลง" ก่อนถึงจะรันโค้ดข้างใน
+                        Swal.fire({ 
                             icon: 'success', 
                             title: 'บันทึกสำเร็จ', 
                             html: txt.replace(/\n/g, '<br>'),
                             confirmButtonText: 'ตกลง'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // ล้างค่าข้อมูลถ้าเป็นการลงทะเบียน
+                                if (act === 'register') {
+                                    document.getElementById('reg-f').value = '';
+                                    document.getElementById('reg-l').value = '';
+                                }
+                                // ดีดกลับหน้าแรกแน่นอนหลังจากกด OK
+                                setPhase(1);
+                            }
                         });
-                        
-                        // --- ส่วนที่เพิ่ม: เมื่อลงทะเบียนเสร็จ ให้ล้างค่าและกลับหน้าแรก ---
-                        if (act === 'register') {
-                            document.getElementById('reg-f').value = '';
-                            document.getElementById('reg-l').value = '';
-                        }
-                        setPhase(1); // กลับหน้าแรกเสมอหลังจากทำงานสำเร็จ
                         
                     } else {
                         Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', html: txt.replace(/\n/g, '<br>') });
